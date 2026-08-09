@@ -1,0 +1,66 @@
+@use 'variables';
+@use 'mixins';
+//>>>>> Section Title Start <<<<<//
+
+.section-title{
+	position: relative;
+	z-index: 9;
+	margin-bottom: 30px;
+	margin-top: -7px;
+
+	@include mixins.breakpoint (max-md){
+		margin-bottom: 0;
+	}
+
+	img {
+		margin-bottom: 5px;
+	}
+
+	span {
+		color: variables.$theme-color;
+		margin-bottom: 10px;
+		display: inline-block;
+		font-weight: 500;
+		text-transform: uppercase;
+		display: block;
+	}
+
+	// h2 {
+		
+	// }
+
+}
+
+.section-title-area	{
+	@include mixins.flex;
+	justify-content: space-between;
+	position: relative;
+	z-index: 9;
+
+	@include mixins.breakpoint (max-md) {
+		flex-wrap: wrap;
+		gap: 30px;
+	}
+}
+
+
+//>>>>> Section Title End <<<<<//
+
+//>>>>> Basic Css Start <<<<<//
+
+.center {
+	text-align: center;
+	margin: 0 auto;
+}
+
+.section-padding{
+	padding: 120px 0;
+	@include mixins.breakpoint(max-xl){
+		padding: 100px 0;
+	}
+	@include mixins.breakpoint(max-lg){
+		padding: 80px 0;
+	}
+}
+//>>>>> Basic Css End <<<<<//
+

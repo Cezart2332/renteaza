@@ -1,0 +1,124 @@
+@use 'variables';
+@use 'mixins';
+/* --------------------------------------------
+    Template Default Fonts & Fonts Styles
+ ---------------------------------------------- */
+
+ @import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&family=Lexend:wght@100..900&family=Pangolin&display=swap');
+
+//font-family: "Font Awesome 6 Free";
+$fa: "Font Awesome 6 Free";
+
+body {
+    font-size: 16px;
+    font-weight: normal;
+    line-height: 28px;
+    color: variables.$text-color;;
+    background-color: variables.$white;
+	padding: 0;
+	margin: 0;
+	overflow-x: hidden;
+}
+
+ul {
+	padding: 0;
+	margin: 0;
+	list-style: none;
+}
+
+button {
+    border: none;
+    background-color: transparent;
+	padding: 0;
+}
+
+input:focus{
+	color: variables.$white;
+	outline: none;
+}
+
+input{
+	color: variables.$white;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin: 0px;
+	padding: 0;
+    color: variables.$header-color;
+	text-transform: capitalize;
+	@include mixins.transition;
+}
+
+h1 {
+	font-size: 110px;
+	font-weight: 700;
+	line-height: 112%;
+}
+
+h2 {
+	font-size: 50px;
+	line-height: 125%;
+	font-weight: 600;
+
+	@include mixins.breakpoint(max-xl){
+		font-size: 34px;
+	}
+
+	@include mixins.breakpoint(max-md){
+		font-size: 32px;
+	}
+
+	@include mixins.breakpoint(max-sm){
+		font-size: 28px;
+	}
+}
+
+h3 {
+	font-size: 22px;
+	font-weight: 600;
+
+	@include mixins.breakpoint(max-sm){
+		font-size: 20px;
+	}
+}
+
+h4 {
+	font-size: 20px;
+	font-weight: 600;
+	line-height: 130%;
+}
+
+h5 {
+	font-size: 18px;
+	font-weight: 500;
+}
+
+h6 {
+	font-size: 16px;
+	font-weight: 600;
+	line-height: 145%;
+}
+
+a {
+    text-decoration: none;
+    outline: none !important;
+    cursor: pointer;
+    color: variables.$header-color;
+	@include mixins.transition;
+}
+
+p {
+    margin: 0px;
+	@include mixins.transition;
+}
+
+span {
+	margin: 0px;
+	@include mixins.transition;
+}
+

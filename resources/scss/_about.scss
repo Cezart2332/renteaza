@@ -1,0 +1,296 @@
+@use 'variables';
+@use 'mixins';
+
+.about-wrapper {
+    .about-image-items {
+        position: relative;
+
+        .counter-content {
+            padding: 26px;
+            background-color: variables.$theme-color;
+            border-radius: 0 10px 10px 0;
+            max-width: 160px;
+            position: absolute;
+            top: 7%;
+            left: 17%;
+            z-index: 9;
+
+            @include mixins.breakpoint (max-xxl){
+                left: 18%;
+            }
+
+            @include mixins.breakpoint (max-xl){
+                left: 0;
+                top: 0;
+            }
+
+            @include mixins.breakpoint (max-lg){
+                left: 36%;
+                top: 5%;
+            }
+
+            @include mixins.breakpoint (max-md){
+                left: 0;
+                top: 0;
+                padding: 18px;
+            }
+
+            &::before {
+                width: 0;
+                height: 0;
+                border-top: 24px solid variables.$theme-color;
+                border-right: 30px solid transparent;
+                content: "";
+                left: 0px;
+                position: absolute;
+                top: -24px;
+                transform: rotate(-180.509deg);
+
+                @include mixins.breakpoint (max-xxl){
+                    display: none;
+                }
+            }
+        }
+
+        .car-shape {
+            position: absolute;
+            bottom: -65px;
+            right: 20px;
+
+            @include mixins.breakpoint (max-xl){
+                display: none;
+            }
+        }
+
+        .color-shape {
+            position: absolute;
+            top: 58%;
+            left: -95px;
+            transform: translateY(-50%);
+            z-index: -1;
+
+            @include mixins.breakpoint (max-xl){
+                display: none;
+            }
+        }
+
+        .about-image-1 {
+            text-align: right;
+            position: relative;
+            z-index: 1;
+    
+            img {
+                max-width: 100%;
+                border-radius: 10px;
+
+                @include mixins.breakpoint (max-xl){
+                    width: 100%;
+                }
+
+                @include mixins.breakpoint (max-lg){
+                    width: initial;
+                }
+
+                @include mixins.breakpoint (max-md){
+                    width: 100%;
+                }
+            }
+        }
+    
+        .about-image-2 {
+            margin-top: -140px;
+
+            @include mixins.breakpoint (max-xl){
+                max-width: 300px;
+                position: relative;
+                z-index: 9;
+            }
+
+            @include mixins.breakpoint (max-lg){
+                max-width: initial;
+                position: initial;
+            }
+
+            @include mixins.breakpoint (max-md){
+                max-width: 300px;
+                z-index: 9;
+                position: relative;
+            }
+
+            @include mixins.breakpoint (max-sm){
+                max-width: 200px;
+            }
+    
+            img {
+                max-width: 100%;
+                border-radius: 10px;
+            }
+        }
+    }
+
+    .about-content {
+        margin-left: 30px;
+
+        @include mixins.breakpoint (max-xl){
+            margin-left: 0;
+        }
+
+        h4 {
+            text-transform: uppercase;
+            color: variables.$theme-color;
+            font-weight: 400;
+            margin-bottom: 20px;
+
+            @include mixins.breakpoint (max-md){
+                font-size: 18px;
+            }
+
+            @include mixins.breakpoint (max-sm){
+                font-size: 16px;
+            }
+        }
+
+        .about-list-item {
+            margin-top: 30px;
+            @include mixins.flex;
+            gap: 70px;
+            margin-bottom: 40px;
+
+            @include mixins.breakpoint (max-xl){
+                gap: 30px;
+                font-size: 18px;
+            }
+
+            @include mixins.breakpoint (max-sm){
+                flex-wrap: wrap;
+                margin-top: 20px;
+                margin-bottom: 30px;
+                gap: 15px;
+            }
+
+            ul {
+                li {
+                    font-size: 20px;
+                    color: variables.$header-color;
+                    padding-bottom: 5px;
+                    border-bottom: 1px solid variables.$border-color;
+                    @include mixins.transition;
+
+                    @include mixins.breakpoint (max-sm){
+                        font-size: 16px;
+                    }
+
+                    &:not(:last-child){
+                        margin-bottom: 15px;
+                    }
+
+                    &:hover {
+                        border-bottom: 1px solid variables.$theme-color;
+                    }
+                }
+            }
+        }
+    }
+}
+
+.about-wrapper-2 {
+    .about-image {
+        margin-right: 60px;
+
+        @include mixins.breakpoint (max-lg){
+            margin-right: 0;
+        }
+
+        img {
+            @include mixins.imgw;
+        }
+    }
+
+    .about-content {
+        margin-left: -45px;
+
+        @include mixins.breakpoint (max-lg){
+            margin-left: 0;
+        }
+
+        .about-list-wrapper {
+            margin-top: 30px;
+            @include mixins.flex;
+            justify-content: space-between;
+
+            @include mixins.breakpoint (max-xl){
+                flex-wrap: wrap;
+                gap: 30px;
+            }
+
+            @include mixins.breakpoint (max-sm){
+               margin-top: 20px;
+            }
+
+            .about-list-items {
+                ul {
+                    margin-bottom: 40px;
+
+                    li {
+                        color: variables.$header-color;
+                        font-weight: 500;
+    
+                        &:not(:last-child){
+                            margin-bottom: 10px;
+                        }
+    
+                        i {
+                            color: variables.$theme-color-2;
+                            margin-right: 8px;
+                        }
+                    }
+                }
+            }
+
+            .author-items {
+                text-align: center;
+                background-color: variables.$white;
+                padding: 18px 35px;
+                border-radius: 10px;
+                border: 10px solid rgb(208, 215, 222);
+
+                .icon {
+                    width: 50px;
+                    height: 50px;
+                    line-height: 50px;
+                    text-align: center;
+                    border-radius: 50%;
+                    background-color: variables.$white;
+                    color: variables.$theme-color;
+                    box-shadow: variables.$shadow;
+                    margin: 0 auto 30px;
+                    @include mixins.transition;
+                }
+
+                p {
+                    margin-bottom: 15px;
+                }
+
+                h6 {
+                    a {
+                        &:hover {
+                            color: variables.$theme-color;
+                        }
+                    }
+                }
+
+                &:hover {
+                    .icon {
+                        background-color: variables.$theme-color;
+                        color: variables.$white;
+                    }
+                }
+            }
+        }
+    }
+}
+
+.about-section-2 {
+    position: relative;
+    z-index: 99;
+}

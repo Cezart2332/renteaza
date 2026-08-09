@@ -1,0 +1,488 @@
+@use 'variables';
+@use 'mixins';
+
+.news-card-items {
+    margin-top: 30px;
+
+    .news-image {
+        overflow: hidden;
+        height: 280px;
+        position: relative;
+        
+        .post-date {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            text-align: center;
+            background-color: variables.$theme-color-2;
+            border-radius: 10px;
+            padding: 14px 20px;
+            
+            h6 {
+                color: variables.$white !important;
+                font-weight: 500;
+                font-size: 14px;
+            }
+        }
+
+        img {
+            @include mixins.imgw;
+            border-radius: 10px;
+            @include mixins.transition;
+            overflow: hidden;
+            display: block;
+            object-fit: cover;
+        }
+    }
+
+    .news-content {
+        background-color: variables.$white;
+        box-shadow: variables.$shadow;
+        border-radius: 10px;
+        margin: 0 20px;
+        position: relative;
+        z-index: 1;
+        margin-top: -40px;
+
+        .post-client {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            position: absolute;
+            top: -15px;
+            left: 30px;
+            border: 2px solid variables.$theme-color;
+
+            img {
+                @include mixins.imgw;
+            }
+        }
+
+        .news-cont {
+            padding: 30px;
+
+            span {
+                margin-bottom: 10px;
+                display: inline-block;
+                font-size: 14px;
+            }
+
+            h3 {
+                margin-bottom: 12px;
+
+                a {
+                    &:hover {
+                        color: variables.$theme-color;
+                    }
+                }
+            }
+        }
+
+        ul {
+            @include mixins.flex;
+            justify-content: space-between;
+            padding: 14px 30px;
+            border-top: 1px solid variables.$border-color;
+
+            i {
+                color: variables.$theme-color;
+            }
+
+            a {
+                color: variables.$text-color;;
+
+                i {
+                    color: variables.$text-color;;
+                   @include mixins.transition; 
+                    
+                }
+
+                &:hover {
+                    color: variables.$theme-color;
+
+                    i {
+                        color: variables.$theme-color;
+                    }
+                }
+            }
+        }
+    }
+
+    &:hover {
+        .news-image {
+            img {
+                transform: scale(1.1);
+                border-radius: 10px;
+            }
+        }
+    }
+}
+
+.news-details-wrapper {
+    .news-details-items {
+        margin-bottom: 50px;
+
+        .news-image {
+            img {
+                @include mixins.imgw;
+            }
+        }
+
+        .news-details-content {
+            margin-top: 25px;
+
+            .list-admin {
+                @include mixins.flex;
+                gap: 15px;
+                margin-bottom: 20px;
+
+                li {
+                    i {
+                        margin-right: 5px;
+                        color: variables.$theme-color;
+                    }
+                }
+            }
+            h3 {
+                font-size: 30px;
+            }
+        }
+    }
+
+    .tag-share-wrap {
+        border-top: 1px solid variables.$border-color;
+        padding-top: 30px;
+        @include mixins.flex;
+        justify-content: space-between;
+
+        .tagcloud {
+            span {
+                font-size: 20px;
+                color: variables.$header-color;
+                font-weight: 500;
+                margin-right: 10px;
+            }
+
+            a {
+                display: inline-block;
+                padding: 15px 20px;
+                line-height: 1;
+                background: variables.$theme-color;
+                margin-right: 8px;
+                text-transform: capitalize;
+                font-weight: 500;
+                -webkit-transition: all 0.4s ease-in-out;
+                transition: all 0.4s ease-in-out;
+                border-radius: 4px;
+                color: variables.$white;
+
+                @include mixins.breakpoint (max-sm){
+                    margin-bottom: 5px;
+                }
+
+                &:hover {
+                    background-color: variables.$theme-color-2;
+                }
+            }
+        }
+
+        .social-share  {
+            gap: 15px;
+            position: relative;
+            z-index: 9;
+            justify-content: space-between;
+    
+            @include mixins.breakpoint (max-sm){
+                margin-top: 20px;
+            }
+    
+        a {
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            font-size: 16px;
+            display: block;
+            color: variables.$header-color;
+            transition: all .4s ease-in-out;
+            text-align: center;
+            background-color: variables.$bg-color;
+            border-radius: 50%;
+    
+                &:hover {
+                    background-color: variables.$theme-color;
+                    color: variables.$white;
+                }
+            }
+        }
+    }
+
+    .news-rental-servce-items {
+        padding: 60px;
+        background-color: variables.$bg-color;
+        border-radius: 10px;
+
+        h4 {
+            line-height: 200%;
+        }
+
+       &.style-2 {
+            background-color: variables.$theme-color-2;
+           
+            h4 {
+                color: variables.$white;
+            }
+       }
+    }
+
+    .comment-reviews {
+        margin-top: 50px;
+
+        h3 {
+            font-size: 36px;
+            margin-bottom: 30px;
+        }
+
+        .single-comment {
+            border-bottom: 1px solid variables.$border-color;
+
+            @include mixins.breakpoint (max-sm){
+                flex-wrap: wrap;
+                gap: 20px;
+            }
+
+            .content {
+                .head {
+                    .con {
+                        h5 {
+                            margin-bottom: 5px;
+                            font-weight: 600;
+                        }
+                    }
+
+                    .star {
+                        i {
+                            color: variables.$ratting-color;
+                            font-size: 14px;
+                        }
+                    }
+                }
+
+                .reply {
+                    border-radius: 5px;
+                    padding: 5px 18px;
+                    font-weight: 400;
+                    background-color: variables.$theme-color;
+                    color: variables.$white;
+
+                    &:hover {
+                        background-color: variables.$theme-color-2;
+                    }
+                }
+            }
+        }
+    }
+
+    .comment-form-wrap {
+        h3 {
+            font-size: 36px;
+            margin-bottom: 30px;
+
+            @include mixins.breakpoint (max-sm){
+                font-size: 28px;
+                margin-bottom: 20px;
+            }
+        }
+
+        .form-clt {
+            span {
+                color: variables.$header-color;
+                display: inline-block;
+                margin-bottom: 10px;
+            }
+
+            input,textarea {
+                width: 100%;
+                outline: none;
+                border: none;
+                background-color: variables.$bg-color;
+                padding: 16px 20px;
+                border-radius: 8px;
+                color: variables.$text-color;;
+
+                &::placeholder {
+                    color: variables.$text-color;;
+                }
+
+            }
+
+            textarea {
+                padding-bottom: 110px;
+            }
+        }
+    }
+
+    .main-sidebar {
+        .search-widget {
+            margin-bottom: 30px;
+
+            form {
+                width: 100%;
+                position: relative;
+        
+                input {
+                    background-color: variables.$theme-color-2;
+                    font-size: 16px;
+                    padding: 25px 40px;
+                    width: 100%;
+                    border: none;
+                    color: variables.$white;
+                    border-radius: 10px;
+
+                    &::placeholder {
+                        color: variables.$white;
+                    }
+                }
+        
+                button {
+                    position: absolute;
+                    right: 40px;
+                    top: 0;
+                    font-size: 18px;
+                    height: 100%;
+                    color: variables.$white;
+                    text-align: center;
+                    transition: all .3s ease-in-out;
+                    border-radius: 0 4px 4px 0;
+                    
+                    &:hover {
+                        background-color: variables.$header-color;
+                    }
+                }
+            }
+        }
+
+        .single-sidebar-widget {
+            padding: 40px 40px;
+            background-color: variables.$bg-color;
+            margin-bottom: 30px;
+            border-radius: 10px;
+    
+            .wid-title {
+                margin-bottom: 25px;
+    
+                h3 {
+                    font-size: 20px;
+                    margin-bottom: 20px;
+                }
+            }
+    
+            .news-widget-categories {
+                ul {
+                    li {
+                    
+                        padding: 18px 20px;
+                        background-color: variables.$white;
+                        font-weight: 500;
+                        @include mixins.transition;
+                        border-radius: 10px;
+                        font-size: 16px;
+    
+                        a {
+                            color: variables.$header-color;
+                            @include mixins.flex;
+                            justify-content: space-between;
+                            width: 100%;
+                        }
+    
+                        span {
+                            @include mixins.transition;
+                            color: variables.$header-color;
+                        }
+    
+                        &:not(:last-child){
+                            margin-bottom: 12px;
+                        }
+    
+                        &:hover {
+                            background-color: variables.$theme-color;
+
+                            a {
+                                color: variables.$white;
+                            }
+                        }
+    
+    
+                        &.active {
+                           background-color: variables.$theme-color;
+
+                            a {
+                                color: variables.$white;
+                            }
+                        }
+                    }
+                }
+            }
+    
+            .recent-post-area {
+                .recent-items {
+                    @include mixins.flex;
+                    gap: 20px;
+    
+                    &:not(:last-child){
+                        margin-bottom: 20px;
+                    }
+    
+                    .recent-content {
+                        ul {
+                            margin-bottom: 8px;
+    
+                            li {
+                                i {
+                                    color: variables.$theme-color;
+                                    margin-right: 5px;
+                                }
+                            }
+                        }
+
+                        h6 {
+                            font-weight: 600;
+                            font-size: 18px;
+    
+                            a {
+                                &:hover {
+                                    color: variables.$theme-color;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+    
+            .tagcloud {
+                a {
+                    display: inline-block;
+                    padding: 14px 20px;
+                    line-height: 1;
+                    font-size: 16px;
+                    font-weight: 500;
+                    background: variables.$white;
+                    margin-right: 5px;
+                    text-transform: capitalize;
+                    margin-bottom: 10px;
+                    border-radius: 10px;
+                    @include mixins.transition;
+    
+                    &:last-child {
+                        margin-right: 0;            
+                    }
+                    
+                    &:hover {
+                        background-color: variables.$theme-color;
+                        color: variables.$white;
+                    }
+                }
+            }
+        }
+    }
+}

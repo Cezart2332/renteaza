@@ -1,0 +1,375 @@
+@use 'variables';
+@use 'mixins';
+
+.cta-rental-items {
+    h4 {
+        font-weight: 400;
+        color: variables.$white;
+        margin-bottom: 5px;
+    }
+
+    h2 {
+        color: variables.$white;
+    }
+
+    .rental-app-button {
+        @include mixins.flex;
+        gap: 10px;
+        margin-top: 30px;
+
+        @include mixins.breakpoint (max-xxs){
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .app-button-items {
+            padding: 18px 35px;
+            background-color: variables.$theme-color;
+            @include mixins.flex;
+            gap: 15px;
+            border-radius: 10px;
+            line-height: 1;
+
+            @include mixins.breakpoint (max-xxs){
+                padding: 18px 25px;
+            }
+    
+            .button-icon {
+               font-size: 20px;
+               color: variables.$white;
+            }
+    
+            .button-text {
+                .text {
+                    font-size: 14px;
+                    color: variables.$white;
+                    line-height: 1;
+                }
+    
+                .headding-text {
+                    color: variables.$white;
+                    margin-top: 2px;
+                    display: block;                
+                }
+            }
+
+            &:hover {
+                background-color: variables.$header-color;
+            }
+
+            &.style-2 {
+                background-color: variables.$white;
+
+                .button-icon {
+                    color: variables.$text-color;;
+                 }
+         
+                 .button-text {
+                     .text {
+                        color: variables.$text-color;;
+                    }
+         
+                    .headding-text {
+                        color: variables.$text-color;;      
+                    }
+                 }
+     
+                 &:hover {
+                    background-color: variables.$header-color;
+
+                     .button-icon {
+                        color: variables.$white;
+                     }
+             
+                     .button-text {
+                         .text {
+                           color: variables.$white;
+                        }
+             
+                        .headding-text {
+                            color: variables.$white;    
+                        }
+                     }
+                 }
+            }
+        }
+    }
+}
+
+.mobile-remons-image {
+    margin-bottom: -120px;
+    max-width: 412px;
+
+    img {
+        @include mixins.imgw;
+    }
+}
+
+.cta-cheap-rental-section {
+    background-color: rgb(17, 26, 54);
+    padding: 30px 0;
+}
+
+.cta-cheap-rental {
+    @include mixins.flex;
+    justify-content: space-between;
+
+    @include mixins.breakpoint (max-lg){
+        flex-wrap: wrap;
+        gap: 25px;
+        justify-content: center;
+    }
+    
+    .cta-cheap-rental-left {
+        @include mixins.flex;
+        gap: 70px;
+
+        @include mixins.breakpoint (max-md){
+            gap: 20px;
+        }
+
+        h4 {
+            font-weight: 400;
+            border-left: 1px solid #29314a;
+            padding-left: 30px;
+            position: relative;
+
+            @include mixins.breakpoint (max-md){
+               padding-left: 0;
+               border: none;
+               font-size: 18px;
+            }
+        }
+    }
+
+    .social-icon {
+        gap: 15px;
+        position: relative;
+        z-index: 9;
+
+        @include mixins.breakpoint (max-sm){
+            margin-top: 20px;
+        }
+
+    a {
+        width: 40px;
+        height: 40px;
+        line-height: 40px;
+        text-align: center;
+        font-size: 16px;
+        display: block;
+        color: variables.$header-color;
+        transition: all .4s ease-in-out;
+        text-align: center;
+        background-color: variables.$white;
+        border-radius: 50%;
+
+            &:hover {
+                background-color: variables.$theme-color;
+                color: variables.$white;
+            }
+        }
+    }
+}
+
+.pickup-wrapper {
+    @include mixins.flex;
+    background-color: variables.$white;
+    box-shadow: variables.$shadow;
+    border-radius: 10px;
+    padding: 40px;
+    justify-content: space-between;
+    gap: 15px;
+    margin-top: -40px;
+    position: relative;
+    z-index: 9;
+
+    @include mixins.breakpoint (max-xxl){
+        flex-wrap: wrap;
+        justify-content: initial;
+    }
+
+    .pickup-items {
+        @include mixins.breakpoint (max-xxl){
+            width: 100%;
+        }
+
+        .field-label {
+            font-size: 16px;
+            font-weight: 500;
+            color: variables.$header-color;
+            margin-bottom: 15px;
+
+            &.style-2 {
+               opacity: 0;
+
+                @include mixins.breakpoint (max-xxl){
+                    display: none;
+                }
+            }
+        }
+
+        .input-group {
+            position: relative;
+            width: 215px;
+
+            @include mixins.breakpoint (max-xxl){
+                width: 100%;
+            }
+
+            .input-group-addon {
+                position: absolute;
+                top: 18px;
+                right: 20px;
+            }
+        }
+
+        input {
+            width: 100%;
+            outline: none;
+            border: none;
+            padding: 18px 25px;
+            color: variables.$text-color;;
+            background-color: rgb(236, 240, 244);
+            font-size: 16px;
+            text-transform: capitalize;
+            font-weight: 400;
+            border-radius: 10px !important;
+
+            &::placeholder {
+                color: variables.$text-color;;
+            }
+        }
+
+        .category-oneadjust{
+            background-color: #ecf0f4;
+            border-radius: 10px;
+            padding: 18px 60px 18px 20px;
+            width: 215px;
+
+            @include mixins.breakpoint (max-xxl){
+               width: initial;
+            }
+
+			.nice-select{
+				width: unset !important;
+				gap: 20px;
+				font-size: 16px;
+
+                span {
+                    color: variables.$text-color;;
+                }
+
+				&::after{
+                    border-bottom: 2px solid variables.$text-color;;
+                    border-right: 2px solid variables.$text-color;;
+				}
+
+				.list{
+					max-height: 15vh;
+					background: variables.$header-color;
+					width: 250px;
+					padding: 5px 8px;
+					overflow-y: scroll;
+                    right: -55px;
+
+					@include mixins.breakpoint (max-xl){
+						right: -60px;
+					}
+
+					li {
+						color: variables.$white;
+						font-size: 14px;
+						border: none;
+					}
+				}
+			}
+        }
+
+        .pickup-btn {
+            background-color: variables.$theme-color;
+            transition: all 0.3s ease;
+            height: 65px;
+            font-size: 16px;
+            font-weight: bold;
+            line-height: 1.2;
+            color: variables.$white;
+            padding: 0 40px;
+            border: none;
+            border-radius: 10px;
+
+            &:hover {
+                background-color: variables.$theme-color-2;
+            }
+        }
+    }
+
+    &.style-2 {
+        box-shadow: none;
+        border: 10px solid  rgb(208, 215, 222);
+       padding: 40px 30px;
+       margin-top: -180px;
+
+       @include mixins.breakpoint (max-xl){
+        margin-top: -80px;
+       }
+
+       @include mixins.breakpoint (max-lg){
+        margin-top: -100px;
+       }
+    }
+}
+
+// .pickup-loaction-area-2 {
+//    position: relative;
+
+//    &::before {
+//         @include mixins.before;
+//         background-color: variables.$white;
+//    }
+// }
+
+.cta-car-booking-section {
+    position: relative;
+    background-position: top center !important;
+    background-repeat: no-repeat !important;
+
+    &::before {
+        @include mixins.before;
+        background-color: variables.$theme-color;
+        opacity: 0.9;
+    }
+}
+
+.cta-car-booking-items {
+    text-align: center;
+    position: relative;
+    z-index: 9;
+
+    .content {
+        h2 {
+            color: variables.$white;
+        }
+    
+        .button-items {
+            @include mixins.flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 40px;
+        }
+    }
+
+    .car-image {
+        max-width: 947px;
+        margin: 50px auto -230px;
+
+        @include mixins.breakpoint (max-lg){
+            margin: 50px auto -160px;
+        }
+
+        img {
+            @include mixins.imgw;
+        }
+    }
+}

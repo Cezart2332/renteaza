@@ -1,0 +1,244 @@
+# =============================================================================
+# Stack de productie pentru Coolify.
+#
+# In Coolify: New Resource -> Docker Compose -> repo-ul asta
+#   Base Directory:          /
+#   Docker Compose Location: /docker-compose.prod.yml
+#
+# ATENTIE: nu adauga blocul `networks:` aici. Coolify creeaza singur reteaua,
+# iar retelele custom fac containerele sa apara pe mai multe retele si Traefik
+# alege imprevizibil IP-ul -> 504 intermitent.
+# =============================================================================
+
+services:
+    # ------------------------------------------------------------ aplicatia web
+    app:
+        build:
+            context: .
+            dockerfile: docker/production/Dockerfile
+            args:
+                # se "coc" in bundle-ul JS la build; vezi COOLIFY.md
+                - VITE_APP_NAME=${APP_NAME:-RENTeaza}
+                - VITE_AWS_PUBLIC_URL=${AWS_PUBLIC_URL}
+                - VITE_GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
+        restart: unless-stopped
+        environment:
+            # Coolify genereaza domeniul si il ruteaza spre portul 80
+            - SERVICE_FQDN_APP_80
+            - APP_NAME=${APP_NAME:-RENTeaza}
+            - APP_ENV=production
+            - APP_DEBUG=false
+            - APP_KEY=${APP_KEY}
+            - APP_URL=${SERVICE_URL_APP}
+
+            - RUN_MIGRATIONS=true
+
+            # logurile pleaca in stdout, le vezi in Coolify
+            - LOG_CHANNEL=stderr
+            - LOG_LEVEL=warning
+
+            - DB_CONNECTION=mysql
+            - DB_HOST=mysql
+            - DB_PORT=3306
+            - DB_DATABASE=${MYSQL_DATABASE:-renteaza}
+            - DB_USERNAME=${MYSQL_USER:-renteaza}
+            - DB_PASSWORD=${SERVICE_PASSWORD_MYSQL}
+
+            - SESSION_DRIVER=database
+            - SESSION_SECURE_COOKIE=true
+            - CACHE_STORE=database
+            - QUEUE_CONNECTION=database
+
+            # MinIO din acelasi stack
+            - FILESYSTEM_DISK=local
+            - AWS_ACCESS_KEY_ID=${SERVICE_USER_MINIO}
+            - AWS_SECRET_ACCESS_KEY=${SERVICE_PASSWORD_MINIO}
+            - AWS_DEFAULT_REGION=us-east-1
+            - AWS_BUCKET=${MINIO_PRIVATE_BUCKET:-renteaza-private}
+            - AWS_PUBLIC_BUCKET=${MINIO_PUBLIC_BUCKET:-renteaza-public}
+            - AWS_ENDPOINT=http://minio:9000
+            - AWS_PUBLIC_URL=${AWS_PUBLIC_URL}
+            - AWS_USE_PATH_STYLE_ENDPOINT=true
+
+            - MAIL_MAILER=${MAIL_MAILER:-smtp}
+            - MAIL_HOST=${MAIL_HOST}
+            - MAIL_PORT=${MAIL_PORT:-587}
+            - MAIL_USERNAME=${MAIL_USERNAME}
+            - MAIL_PASSWORD=${MAIL_PASSWORD}
+            - MAIL_SCHEME=${MAIL_SCHEME:-smtp}
+            - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS}
+            - MAIL_FROM_NAME=${APP_NAME:-RENTeaza}
+
+            - STRIPE_KEY=${STRIPE_KEY}
+            - STRIPE_SECRET=${STRIPE_SECRET}
+            - PLATFORM_FEE_PCT=${PLATFORM_FEE_PCT:-10}
+
+            - WISE_BASE_URL=${WISE_BASE_URL:-https://api.wise.com}
+            - WISE_API_TOKEN=${WISE_API_TOKEN}
+            - WISE_PROFILE_ID=${WISE_PROFILE_ID}
+
+            - VONAGE_KEY=${VONAGE_KEY}
+            - VONAGE_SECRET=${VONAGE_SECRET}
+            - VONAGE_SMS_FROM=${VONAGE_SMS_FROM:-Renteaza}
+        volumes:
+            # pozele de check-in folosesc disk-ul local 'public', nu S3
+            - app-storage:/var/www/html/storage/app
+        depends_on:
+            mysql:
+                condition: service_healthy
+            minio:
+                condition: service_healthy
+        healthcheck:
+            test: ["CMD", "curl", "-fsS", "http://127.0.0.1/up"]
+            interval: 10s
+            timeout: 5s
+            retries: 6
+            start_period: 60s
+
+    # ------------------------------------------------------------ queue worker
+    queue:
+        build:
+            context: .
+            dockerfile: docker/production/Dockerfile
+        restart: unless-stopped
+        command: ["php", "artisan", "queue:work", "--tries=3", "--timeout=120", "--sleep=3", "--max-time=3600"]
+        environment:
+            - APP_NAME=${APP_NAME:-RENTeaza}
+            - APP_ENV=production
+            - APP_DEBUG=false
+            - APP_KEY=${APP_KEY}
+            - APP_URL=${SERVICE_URL_APP}
+
+            # migrarile ruleaza doar in 'app'
+            - RUN_MIGRATIONS=false
+
+            - LOG_CHANNEL=stderr
+            - LOG_LEVEL=warning
+
+            - DB_CONNECTION=mysql
+            - DB_HOST=mysql
+            - DB_PORT=3306
+            - DB_DATABASE=${MYSQL_DATABASE:-renteaza}
+            - DB_USERNAME=${MYSQL_USER:-renteaza}
+            - DB_PASSWORD=${SERVICE_PASSWORD_MYSQL}
+
+            - SESSION_DRIVER=database
+            - CACHE_STORE=database
+            - QUEUE_CONNECTION=database
+
+            - FILESYSTEM_DISK=local
+            - AWS_ACCESS_KEY_ID=${SERVICE_USER_MINIO}
+            - AWS_SECRET_ACCESS_KEY=${SERVICE_PASSWORD_MINIO}
+            - AWS_DEFAULT_REGION=us-east-1
+            - AWS_BUCKET=${MINIO_PRIVATE_BUCKET:-renteaza-private}
+            - AWS_PUBLIC_BUCKET=${MINIO_PUBLIC_BUCKET:-renteaza-public}
+            - AWS_ENDPOINT=http://minio:9000
+            - AWS_PUBLIC_URL=${AWS_PUBLIC_URL}
+            - AWS_USE_PATH_STYLE_ENDPOINT=true
+
+            - MAIL_MAILER=${MAIL_MAILER:-smtp}
+            - MAIL_HOST=${MAIL_HOST}
+            - MAIL_PORT=${MAIL_PORT:-587}
+            - MAIL_USERNAME=${MAIL_USERNAME}
+            - MAIL_PASSWORD=${MAIL_PASSWORD}
+            - MAIL_SCHEME=${MAIL_SCHEME:-smtp}
+            - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS}
+            - MAIL_FROM_NAME=${APP_NAME:-RENTeaza}
+
+            - STRIPE_KEY=${STRIPE_KEY}
+            - STRIPE_SECRET=${STRIPE_SECRET}
+            - PLATFORM_FEE_PCT=${PLATFORM_FEE_PCT:-10}
+
+            - WISE_BASE_URL=${WISE_BASE_URL:-https://api.wise.com}
+            - WISE_API_TOKEN=${WISE_API_TOKEN}
+            - WISE_PROFILE_ID=${WISE_PROFILE_ID}
+
+            - VONAGE_KEY=${VONAGE_KEY}
+            - VONAGE_SECRET=${VONAGE_SECRET}
+            - VONAGE_SMS_FROM=${VONAGE_SMS_FROM:-Renteaza}
+        volumes:
+            - app-storage:/var/www/html/storage/app
+        depends_on:
+            app:
+                condition: service_healthy
+        healthcheck:
+            test: ["CMD-SHELL", "pgrep -f 'queue:work' > /dev/null || exit 1"]
+            interval: 30s
+            timeout: 5s
+            retries: 3
+            start_period: 60s
+
+    # ------------------------------------------------------------------ MySQL
+    # Fara `ports:` -> ramane doar pe reteaua interna, inaccesibil din internet.
+    mysql:
+        image: docker.io/library/mysql:8.0
+        restart: unless-stopped
+        command:
+            - --character-set-server=utf8mb4
+            - --collation-server=utf8mb4_unicode_ci
+        environment:
+            - MYSQL_DATABASE=${MYSQL_DATABASE:-renteaza}
+            - MYSQL_USER=${MYSQL_USER:-renteaza}
+            - MYSQL_PASSWORD=${SERVICE_PASSWORD_MYSQL}
+            - MYSQL_ROOT_PASSWORD=${SERVICE_PASSWORD_MYSQLROOT}
+        volumes:
+            - mysql-data:/var/lib/mysql
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${SERVICE_PASSWORD_MYSQLROOT}"]
+            interval: 10s
+            timeout: 5s
+            retries: 10
+            start_period: 60s
+
+    # ------------------------------------------------------------------ MinIO
+    # Are domeniu propriu: browserul incarca pozele masinilor direct de aici.
+    minio:
+        image: docker.io/minio/minio:latest
+        restart: unless-stopped
+        command: server /data --console-address ":9001"
+        environment:
+            - SERVICE_FQDN_MINIO_9000
+            - MINIO_ROOT_USER=${SERVICE_USER_MINIO}
+            - MINIO_ROOT_PASSWORD=${SERVICE_PASSWORD_MINIO}
+            # URL-ul public al API-ului S3 (pentru linkuri generate corect)
+            - MINIO_SERVER_URL=${SERVICE_URL_MINIO}
+        volumes:
+            - minio-data:/data
+        healthcheck:
+            test: ["CMD", "mc", "ready", "local"]
+            interval: 10s
+            timeout: 5s
+            retries: 10
+            start_period: 30s
+
+    # creeaza bucket-urile la primul deploy si le lasa asa
+    minio-init:
+        image: docker.io/minio/mc:latest
+        restart: "no"
+        exclude_from_hc: true
+        depends_on:
+            minio:
+                condition: service_healthy
+        environment:
+            - MINIO_USER=${SERVICE_USER_MINIO}
+            - MINIO_PASSWORD=${SERVICE_PASSWORD_MINIO}
+            - PRIVATE_BUCKET=${MINIO_PRIVATE_BUCKET:-renteaza-private}
+            - PUBLIC_BUCKET=${MINIO_PUBLIC_BUCKET:-renteaza-public}
+        entrypoint:
+            - sh
+            - -c
+            - |
+                until mc alias set local http://minio:9000 "$$MINIO_USER" "$$MINIO_PASSWORD"; do
+                    echo "astept MinIO..."; sleep 2;
+                done
+                mc mb --ignore-existing "local/$$PRIVATE_BUCKET"
+                mc mb --ignore-existing "local/$$PUBLIC_BUCKET"
+                # bucket-ul privat ramane inchis; doar cel public e citibil anonim
+                mc anonymous set none     "local/$$PRIVATE_BUCKET"
+                mc anonymous set download "local/$$PUBLIC_BUCKET"
+                echo "bucket-uri MinIO gata"
+
+volumes:
+    mysql-data:
+    minio-data:
+    app-storage:

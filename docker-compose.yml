@@ -1,0 +1,148 @@
+name: renteaza
+
+services:
+    # ------------------------------------------------------------------ MySQL
+    mysql:
+        image: docker.io/library/mysql:8.0
+        container_name: renteaza-mysql
+        restart: unless-stopped
+        command:
+            - --character-set-server=utf8mb4
+            - --collation-server=utf8mb4_unicode_ci
+        environment:
+            MYSQL_DATABASE: renteaza
+            MYSQL_USER: renteaza
+            MYSQL_PASSWORD: secret
+            MYSQL_ROOT_PASSWORD: secret
+            MYSQL_ALLOW_EMPTY_PASSWORD: "no"
+        ports:
+            - "${FORWARD_DB_PORT:-3306}:3306"
+        volumes:
+            - mysql-data:/var/lib/mysql
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-psecret"]
+            interval: 5s
+            timeout: 5s
+            retries: 30
+            start_period: 30s
+
+    # -------------------------------------------------------------- Laravel
+    app:
+        build:
+            context: ./docker/php
+        image: renteaza/php:8.3
+        container_name: renteaza-app
+        restart: unless-stopped
+        environment:
+            APP_INIT: "1" # doar acest container ruleaza composer/migrate/seed
+            DB_HOST: mysql
+            DB_PORT: "3306"
+        volumes:
+            - ./:/var/www/html
+        ports:
+            - "${FORWARD_APP_PORT:-8000}:8000"
+        depends_on:
+            mysql:
+                condition: service_healthy
+            minio:
+                condition: service_started
+            mailpit:
+                condition: service_started
+
+    # ---------------------------------------------------------- Queue worker
+    queue:
+        build:
+            context: ./docker/php
+        image: renteaza/php:8.3
+        container_name: renteaza-queue
+        restart: unless-stopped
+        environment:
+            APP_INIT: "0"
+            DB_HOST: mysql
+            DB_PORT: "3306"
+        volumes:
+            - ./:/var/www/html
+        command: ["php", "artisan", "queue:work", "--tries=3", "--timeout=120"]
+        depends_on:
+            app:
+                condition: service_started
+            mysql:
+                condition: service_healthy
+
+    # -------------------------------------------------------- Vite dev server
+    vite:
+        image: docker.io/library/node:22-bookworm-slim
+        container_name: renteaza-vite
+        restart: unless-stopped
+        working_dir: /var/www/html
+        environment:
+            DOCKER: "true" # activeaza blocul server{} din vite.config.js
+            CHOKIDAR_USEPOLLING: "true"
+        volumes:
+            - ./:/var/www/html
+        ports:
+            - "${FORWARD_VITE_PORT:-5173}:5173"
+        command:
+            - bash
+            - -c
+            - |
+                set -e
+                [ -d node_modules ] || npm ci
+                echo "[vite] astept vendor/tightenco/ziggy (composer install in containerul app)..."
+                until [ -d vendor/tightenco/ziggy ]; do sleep 3; done
+                npm run dev
+        depends_on:
+            app:
+                condition: service_started
+
+    # ------------------------------------------------- MinIO (S3 compatibil)
+    minio:
+        image: docker.io/minio/minio:latest
+        container_name: renteaza-minio
+        restart: unless-stopped
+        command: server /data --console-address ":9001"
+        environment:
+            MINIO_ROOT_USER: minioadmin
+            MINIO_ROOT_PASSWORD: minioadmin
+        ports:
+            - "${FORWARD_MINIO_PORT:-9000}:9000"
+            - "${FORWARD_MINIO_CONSOLE_PORT:-9001}:9001"
+        volumes:
+            - minio-data:/data
+        healthcheck:
+            test: ["CMD", "mc", "ready", "local"]
+            interval: 5s
+            timeout: 5s
+            retries: 30
+
+    # creeaza bucket-urile si face bucket-ul public citibil anonim
+    minio-init:
+        image: docker.io/minio/mc:latest
+        container_name: renteaza-minio-init
+        depends_on:
+            minio:
+                condition: service_started
+        entrypoint:
+            - sh
+            - -c
+            - |
+                until mc alias set local http://minio:9000 minioadmin minioadmin; do
+                    echo "astept MinIO..."; sleep 2;
+                done
+                mc mb --ignore-existing local/renteaza-private
+                mc mb --ignore-existing local/renteaza-public
+                mc anonymous set download local/renteaza-public
+                echo "bucket-uri MinIO gata"
+
+    # ------------------------------------------------------------- Mailpit
+    mailpit:
+        image: docker.io/axllent/mailpit:latest
+        container_name: renteaza-mailpit
+        restart: unless-stopped
+        ports:
+            - "${FORWARD_MAILPIT_PORT:-1025}:1025"
+            - "${FORWARD_MAILPIT_UI_PORT:-8025}:8025"
+
+volumes:
+    mysql-data:
+    minio-data:
