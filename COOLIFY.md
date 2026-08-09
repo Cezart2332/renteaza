@@ -43,9 +43,40 @@ Doua servicii au nevoie de domeniu public:
 - **minio** — subdomeniu pentru fisiere, ex. `storage.renteaza.ro`
   (browserul incarca pozele masinilor direct de acolo)
 
-Coolify genereaza cate un domeniu automat pentru `SERVICE_FQDN_APP_80` si
-`SERVICE_FQDN_MINIO_9000`; le poti inlocui cu ale tale din UI. **Seteaza-le
-inainte de primul deploy** — vezi punctul urmator de ce conteaza ordinea.
+Domeniile **nu se scriu in acest fisier**. `SERVICE_FQDN_APP_80` si
+`SERVICE_FQDN_MINIO_9000` sunt doar declarate ca variabile magice; Coolify
+genereaza automat cate un domeniu si il expune ca `SERVICE_URL_APP` /
+`SERVICE_URL_MINIO`, pe care compose-ul le foloseste deja. Valoarea reala o
+editezi din UI, la fiecare serviciu (Configuration → Domains).
+
+**Seteaza-le inainte de primul deploy** — vezi punctul urmator de ce conteaza
+ordinea.
+
+### Cu DuckDNS
+
+Ai nevoie de doua nume. Verifica intai daca subdomeniile merg:
+
+```bash
+dig +short storage.NUMELE-TAU.duckdns.org
+```
+
+Daca intoarce IP-ul VPS-ului, folosesti `NUMELE-TAU.duckdns.org` si
+`storage.NUMELE-TAU.duckdns.org`. Daca nu, inregistrezi un al doilea nume in
+contul DuckDNS (ex. `renteaza` si `renteaza-storage`) — nu trebuie sa fie
+inrudite.
+
+### Daca rulezi fara certificat (http simplu)
+
+Cand aplicatia nu e publica, Let's Encrypt nu poate emite certificat (validarea
+cere portul 80 accesibil din internet), deci ramai pe `http://`. In cazul asta
+adauga in Coolify:
+
+```
+SESSION_SECURE_COOKIE=false
+```
+
+Altfel browserul refuza sa trimita cookie-ul de sesiune pe http, iar login-ul te
+arunca la nesfarsit inapoi la formular, fara niciun mesaj de eroare.
 
 `mysql` nu are `ports:` expuse, deci ramane doar pe reteaua interna. Consola
 MinIO (9001) la fel: nu e publicata nicaieri.

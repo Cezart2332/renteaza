@@ -47,7 +47,10 @@ services:
             - DB_PASSWORD=${SERVICE_PASSWORD_MYSQL}
 
             - SESSION_DRIVER=database
-            - SESSION_SECURE_COOKIE=true
+            # Pe http simplu (fara certificat) trebuie pus pe false, altfel
+            # browserul refuza sa trimita cookie-ul de sesiune si login-ul
+            # te arunca la nesfarsit inapoi la formular.
+            - SESSION_SECURE_COOKIE=${SESSION_SECURE_COOKIE:-true}
             - CACHE_STORE=database
             - QUEUE_CONNECTION=database
 
