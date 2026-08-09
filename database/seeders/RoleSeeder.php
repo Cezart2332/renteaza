@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Role;
-use Illuminate\Support\Str;
 use Illuminate\Database\Seeder;
 
 class RoleSeeder extends Seeder
@@ -13,18 +12,20 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
+        // Numele de aici trebuie sa fie identice cu cele cerute de middleware-ul
+        // 'role:...' din bootstrap/app.php, altfel utilizatorii primesc 403.
         $roles = [
-            // 'super-admin',
-            // 'admin',
-            //'user'
-            'company_owner'
+            'admin',
+            'user',
+            'company-owner', // atentie: cu cratima, nu 'company_owner'
         ];
 
         foreach ($roles as $role) {
-            Role::query()->firstOrCreate([
-                'id' => Str::uuid(),
-                'name' => $role,
-            ]);
+            // Cautarea se face DOAR dupa nume. Varianta veche includea si
+            // 'id' => Str::uuid() in criterii, deci nu gasea niciodata randul
+            // existent si crea duplicate la fiecare rulare.
+            // Id-ul UUID e generat automat de UuidModel la creare.
+            Role::query()->firstOrCreate(['name' => $role]);
         }
     }
 }

@@ -115,30 +115,35 @@ ca sa nu se calce pe picioare.
 > rute cu closure, iar Laravel nu le poate serializa. Daca vrei si acel cache,
 > muta cele 5 closure-uri in controllere.
 
-## 5. Dupa primul deploy
+## 5. Seederele ruleaza automat
 
-Migrarile creeaza tabelele, dar nu si datele de baza. Din terminalul Coolify
-al containerului `app`:
+Containerul `app` ruleaza `php artisan db:seed --force` la **fiecare deploy**
+(`RUN_SEEDERS=true`). Nu ai nimic de facut manual: rolurile `admin`, `user`,
+`company-owner` si contul de administrator exista de la prima pornire.
 
-```bash
-php artisan db:seed --force
+```
+admin@example.ro / test1234
 ```
 
-**Atentie**, `RoleSeeder` nu e idempotent (foloseste `firstOrCreate` cu un `id`
-UUID nou de fiecare data), deci ruleaza-l **o singura data** — altfel duplica
-rolurile.
+Seederele sunt idempotente — verificat pe doua deploy-uri consecutive: 3 roluri,
+un singur cont, un singur rand in `user_roles`.
 
-### Verifica numele rolurilor inainte
+Daca esueaza, aplicatia porneste oricum si eroarea apare in logurile Coolify.
+Migrarile, in schimb, opresc deploy-ul daca esueaza — acolo integritatea datelor
+conteaza mai mult.
 
-Exista o nepotrivire in cod pe care deploy-ul o va scoate la iveala:
+### Consecinta de retinut
 
-- rutele si `RoleMiddleware` cer `admin`, `user`, `company-owner` (cu cratima)
-- `RoleSeeder` creeaza, cu restul liniilor comentate, doar `company_owner` (cu underscore)
+Parola de admin e **rescrisa la fiecare deploy** cu valoarea din
+`AdminUserSeeder`. Daca o schimbi din interfata, urmatorul deploy o aduce inapoi
+la `test1234`.
 
-Pe baza ta de dev rolurile probabil au fost create manual, asa ca nu s-a vazut.
-Pe o baza noua, utilizatorii nu vor putea intra in zonele protejate. Alege o
-varianta si fa-o consecventa in seeder si in rute inainte de a da drumul la
-utilizatori reali.
+Ai doua optiuni cand vrei altceva:
+
+- editezi constantele din `database/seeders/AdminUserSeeder.php` (parola noua se
+  aplica la urmatorul deploy);
+- setezi `RUN_SEEDERS=false` in Coolify, si atunci seederele nu mai ruleaza
+  deloc — nu e nevoie de redeploy de cod, doar de restart.
 
 ---
 

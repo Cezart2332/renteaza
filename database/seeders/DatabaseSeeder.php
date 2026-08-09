@@ -61,6 +61,7 @@ class DatabaseSeeder extends Seeder
             // AddStudioLocationSeeder::class,
             //FaqSeeder::class,
             RoleSeeder::class,
+            AdminUserSeeder::class,
         ]);
     }
 }

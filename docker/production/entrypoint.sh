@@ -6,6 +6,7 @@ cd /var/www/html
 DB_HOST="${DB_HOST:-mysql}"
 DB_PORT="${DB_PORT:-3306}"
 RUN_MIGRATIONS="${RUN_MIGRATIONS:-false}"
+RUN_SEEDERS="${RUN_SEEDERS:-false}"
 
 log() { echo "[entrypoint] $*"; }
 
@@ -51,6 +52,20 @@ log "MySQL e sus"
 if [ "$RUN_MIGRATIONS" = "true" ]; then
     log "rulez migrarile"
     php artisan migrate --force --no-interaction
+fi
+
+# ------------------------------------------------------------------- seedere
+# Ruleaza la fiecare deploy. RoleSeeder si AdminUserSeeder sunt idempotente:
+# reconstruiesc rolurile si contul de admin fara sa duplice nimic.
+#
+# Esecul seederelor NU opreste pornirea aplicatiei: migrarile au trecut deja,
+# iar un site care ramane sus e mai important decat datele de bootstrap. Eroarea
+# apare in logurile Coolify.
+if [ "$RUN_SEEDERS" = "true" ]; then
+    log "rulez seederele"
+    if ! php artisan db:seed --force --no-interaction; then
+        log "ATENTIE: seederele au esuat, pornesc aplicatia oricum (vezi eroarea de mai sus)"
+    fi
 fi
 
 # --------------------------------------------------------------------- cache

@@ -24,6 +24,24 @@ Prima pornire dureaza cateva minute: se construieste imaginea PHP, ruleaza
 Oprire: `docker compose down`. Stergere completa cu tot cu date:
 `docker compose down -v`.
 
+## Cont de administrator
+
+Seederele ruleaza automat la prima pornire si creeaza:
+
+```
+admin@example.ro / test1234
+```
+
+Credentialele sunt constante in `database/seeders/AdminUserSeeder.php`.
+
+Se creeaza si rolurile `admin`, `user`, `company-owner` — exact numele cerute de
+middleware-ul `role:...`. Seederele ruleaza la fiecare pornire a containerului
+si sunt idempotente, deci contul se reface singur dupa un `down -v`. Manual:
+
+```bash
+docker compose exec app php artisan db:seed --force
+```
+
 ## Ce face fiecare serviciu
 
 - **app** — `php artisan serve`. Tot ce e initializare (composer install, APP_KEY,

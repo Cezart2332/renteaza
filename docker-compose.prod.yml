@@ -32,6 +32,8 @@ services:
             - APP_URL=${SERVICE_URL_APP}
 
             - RUN_MIGRATIONS=true
+            # seederele ruleaza la fiecare deploy (roluri + cont admin)
+            - RUN_SEEDERS=true
 
             # logurile pleaca in stdout, le vezi in Coolify
             - LOG_CHANNEL=stderr
@@ -109,8 +111,9 @@ services:
             - APP_KEY=${APP_KEY}
             - APP_URL=${SERVICE_URL_APP}
 
-            # migrarile ruleaza doar in 'app'
+            # migrarile si seederele ruleaza doar in 'app'
             - RUN_MIGRATIONS=false
+            - RUN_SEEDERS=false
 
             - LOG_CHANNEL=stderr
             - LOG_LEVEL=warning

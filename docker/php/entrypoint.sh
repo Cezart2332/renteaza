@@ -60,9 +60,13 @@ if [ "$APP_INIT" = "1" ]; then
     log "rulez migrarile"
     php artisan migrate --force
 
-    if [ ! -f storage/.seeded ]; then
-        log "rulez seederele (o singura data)"
-        php artisan db:seed --force && touch storage/.seeded
+    # Seederele sunt idempotente, deci ruleaza la fiecare pornire. (Varianta
+    # veche folosea un marker storage/.seeded, dar acela traieste pe disc si
+    # supravietuieste unui `down -v`: baza era stearsa, markerul ramanea, si
+    # porneai fara roluri si fara cont de admin.)
+    log "rulez seederele"
+    if ! php artisan db:seed --force; then
+        log "ATENTIE: seederele au esuat, continui oricum"
     fi
 
     # in dev vrem config/route cache curate, altfel .env-ul nou nu se vede
