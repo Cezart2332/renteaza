@@ -178,6 +178,36 @@ Ai doua optiuni cand vrei altceva:
 
 ---
 
+## De ce MariaDB si nu MySQL
+
+Imaginea oficiala `mysql:8` e construita pe Oracle Linux, cu glibc compilat
+pentru `x86-64-v2`. Pe vCPU-uri fara SSE4.2 (modelul `qemu64`, frecvent la VPS-uri)
+containerul moare instant cu:
+
+```
+Fatal glibc error: CPU does not support x86-64-v2
+```
+
+MariaDB e pe Debian/Ubuntu, compilat pentru x86-64 de baza, si porneste peste tot.
+Schema nu foloseste nimic specific MySQL (fara `whereJsonContains`, fara SQL brut
+in migrari), deci schimbarea e transparenta pentru aplicatie.
+
+Daca vrei sa verifici ce suporta CPU-ul serverului:
+
+```bash
+/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 --help | grep -A3 "Subdirectories"
+```
+
+Rezolvarea la radacina ar fi ca furnizorul de VPS sa treaca modelul de CPU pe
+`host-passthrough`, dar nu e mereu posibil — si nu e nevoie.
+
+### Daca ai deja un volum de la incercarea cu MySQL
+
+Sterge-l inainte de redeploy, altfel MariaDB gaseste un director de date pe
+jumatate initializat si refuza sa porneasca. Volumul se numeste acum
+`mariadb-data`, deci cel vechi (`mysql-data`) ramane orfan si poate fi sters din
+Coolify → Storages.
+
 ## Ce se persista
 
 | Volum         | Continut                                          |

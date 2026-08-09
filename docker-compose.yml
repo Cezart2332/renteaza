@@ -1,26 +1,26 @@
 name: renteaza
 
 services:
-    # ------------------------------------------------------------------ MySQL
-    mysql:
-        image: docker.io/library/mysql:8.0
+    # ---------------------------------------------------------------- MariaDB
+    # Aceeasi imagine ca in productie: mysql:8 crapa pe vCPU-uri fara SSE4.2.
+    mariadb:
+        image: docker.io/library/mariadb:11.4
         container_name: renteaza-mysql
         restart: unless-stopped
         command:
             - --character-set-server=utf8mb4
             - --collation-server=utf8mb4_unicode_ci
         environment:
-            MYSQL_DATABASE: renteaza
-            MYSQL_USER: renteaza
-            MYSQL_PASSWORD: secret
-            MYSQL_ROOT_PASSWORD: secret
-            MYSQL_ALLOW_EMPTY_PASSWORD: "no"
+            MARIADB_DATABASE: renteaza
+            MARIADB_USER: renteaza
+            MARIADB_PASSWORD: secret
+            MARIADB_ROOT_PASSWORD: secret
         ports:
             - "${FORWARD_DB_PORT:-3306}:3306"
         volumes:
-            - mysql-data:/var/lib/mysql
+            - mariadb-data:/var/lib/mysql
         healthcheck:
-            test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-psecret"]
+            test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
             interval: 5s
             timeout: 5s
             retries: 30
@@ -35,14 +35,14 @@ services:
         restart: unless-stopped
         environment:
             APP_INIT: "1" # doar acest container ruleaza composer/migrate/seed
-            DB_HOST: mysql
+            DB_HOST: mariadb
             DB_PORT: "3306"
         volumes:
             - ./:/var/www/html
         ports:
             - "${FORWARD_APP_PORT:-8000}:8000"
         depends_on:
-            mysql:
+            mariadb:
                 condition: service_healthy
             minio:
                 condition: service_started
@@ -58,7 +58,7 @@ services:
         restart: unless-stopped
         environment:
             APP_INIT: "0"
-            DB_HOST: mysql
+            DB_HOST: mariadb
             DB_PORT: "3306"
         volumes:
             - ./:/var/www/html
@@ -66,7 +66,7 @@ services:
         depends_on:
             app:
                 condition: service_started
-            mysql:
+            mariadb:
                 condition: service_healthy
 
     # -------------------------------------------------------- Vite dev server
@@ -144,5 +144,5 @@ services:
             - "${FORWARD_MAILPIT_UI_PORT:-8025}:8025"
 
 volumes:
-    mysql-data:
+    mariadb-data:
     minio-data:

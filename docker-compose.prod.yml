@@ -39,8 +39,8 @@ services:
             - LOG_CHANNEL=stderr
             - LOG_LEVEL=warning
 
-            - DB_CONNECTION=mysql
-            - DB_HOST=mysql
+            - DB_CONNECTION=mariadb
+            - DB_HOST=mariadb
             - DB_PORT=3306
             - DB_DATABASE=${MYSQL_DATABASE:-renteaza}
             - DB_USERNAME=${MYSQL_USER:-renteaza}
@@ -89,7 +89,7 @@ services:
             # pozele de check-in folosesc disk-ul local 'public', nu S3
             - app-storage:/var/www/html/storage/app
         depends_on:
-            mysql:
+            mariadb:
                 condition: service_healthy
             minio:
                 condition: service_healthy
@@ -121,8 +121,8 @@ services:
             - LOG_CHANNEL=stderr
             - LOG_LEVEL=warning
 
-            - DB_CONNECTION=mysql
-            - DB_HOST=mysql
+            - DB_CONNECTION=mariadb
+            - DB_HOST=mariadb
             - DB_PORT=3306
             - DB_DATABASE=${MYSQL_DATABASE:-renteaza}
             - DB_USERNAME=${MYSQL_USER:-renteaza}
@@ -174,23 +174,26 @@ services:
             retries: 3
             start_period: 60s
 
-    # ------------------------------------------------------------------ MySQL
+    # ---------------------------------------------------------------- MariaDB
+    # Nu MySQL: imaginea oficiala mysql:8 e construita pe Oracle Linux, cu glibc
+    # compilat pentru x86-64-v2, si crapa pe vCPU-uri fara SSE4.2 ("Fatal glibc
+    # error: CPU does not support x86-64-v2"). MariaDB e pe Debian, baseline x86-64.
     # Fara `ports:` -> ramane doar pe reteaua interna, inaccesibil din internet.
-    mysql:
-        image: docker.io/library/mysql:8.0
+    mariadb:
+        image: docker.io/library/mariadb:11.4
         restart: unless-stopped
         command:
             - --character-set-server=utf8mb4
             - --collation-server=utf8mb4_unicode_ci
         environment:
-            - MYSQL_DATABASE=${MYSQL_DATABASE:-renteaza}
-            - MYSQL_USER=${MYSQL_USER:-renteaza}
-            - MYSQL_PASSWORD=${SERVICE_PASSWORD_MYSQL}
-            - MYSQL_ROOT_PASSWORD=${SERVICE_PASSWORD_MYSQLROOT}
+            - MARIADB_DATABASE=${MYSQL_DATABASE:-renteaza}
+            - MARIADB_USER=${MYSQL_USER:-renteaza}
+            - MARIADB_PASSWORD=${SERVICE_PASSWORD_MYSQL}
+            - MARIADB_ROOT_PASSWORD=${SERVICE_PASSWORD_MYSQLROOT}
         volumes:
-            - mysql-data:/var/lib/mysql
+            - mariadb-data:/var/lib/mysql
         healthcheck:
-            test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${SERVICE_PASSWORD_MYSQLROOT}"]
+            test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
             interval: 10s
             timeout: 5s
             retries: 10
@@ -245,6 +248,6 @@ services:
                 echo "bucket-uri MinIO gata"
 
 volumes:
-    mysql-data:
+    mariadb-data:
     minio-data:
     app-storage:

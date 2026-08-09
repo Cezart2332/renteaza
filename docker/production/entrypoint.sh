@@ -3,7 +3,7 @@ set -e
 
 cd /var/www/html
 
-DB_HOST="${DB_HOST:-mysql}"
+DB_HOST="${DB_HOST:-mariadb}"
 DB_PORT="${DB_PORT:-3306}"
 RUN_MIGRATIONS="${RUN_MIGRATIONS:-false}"
 RUN_SEEDERS="${RUN_SEEDERS:-false}"

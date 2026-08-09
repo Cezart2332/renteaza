@@ -14,7 +14,13 @@ return new class extends Migration
         Schema::create('contracts', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignUlid('booking_id')->constrained()->cascadeOnDelete();
+            // bookings.id e uuid, deci si cheia straina trebuie sa fie uuid.
+            // Aici era foreignUlid (char(26)), corectat abia de migrarea
+            // 2025_09_06_093647. MySQL tolera nepotrivirea (permite lungimi
+            // diferite la coloane text in chei straine), dar MariaDB mapeaza
+            // uuid() pe tipul nativ UUID si respinge legatura cu errno 150,
+            // oprind tot lantul de migrari inainte sa apuce sa se corecteze.
+            $table->foreignUuid('booking_id')->constrained()->cascadeOnDelete();
 
             // Starea contractului (începem cu pending)
             // (vom sincroniza cu ReservationStatus: contract_pending / partially_signed / signed)
