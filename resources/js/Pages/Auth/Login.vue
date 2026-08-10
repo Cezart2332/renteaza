@@ -154,6 +154,18 @@ const submit = () => {
                     </div>
                 </form>
 
+                <!-- Ruta /register exista, dar nu era linkuita de nicaieri in
+                     interfata, asa ca pagina de inregistrare era inaccesibila. -->
+                <p class="tw-text-center tw-text-sm tw-text-gray-600">
+                    Nu ai cont?
+                    <Link
+                        :href="route('register')"
+                        class="tw-font-semibold tw-text-indigo-600 hover:tw-text-indigo-700"
+                    >
+                        Înregistrează-te
+                    </Link>
+                </p>
+
                 <!-- Footer helper (optional) -->
                 <p class="tw-text-center tw-text-xs tw-text-gray-500">
                     Protejăm datele tale.
