@@ -17,12 +17,22 @@ class CarController extends Controller
 {
     public function index(Request $request)
     {
-        $filters = $request->only(['rentType', 'pickupLocation', 'pickupDate', 'dropoffDate', 'carType']);
+        $filters = $request->only(['rentType', 'pickupLocation', 'pickupDate', 'dropoffDate', 'carType', 'search']);
 
         $pickupDate = $filters['pickupDate'] ?? null;
         $dropoffDate = $filters['dropoffDate'] ?? null;
 
         $cars = Vehicle::query()
+            ->publiclyVisible()
+
+            // Cautare libera din bara de sus (Header -> SearchWrap -> AppLayout).
+            // Inainte butonul de cautare nu facea nimic.
+            ->when($filters['search'] ?? null, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('brand', 'like', "%{$search}%")
+                        ->orWhere('model', 'like', "%{$search}%");
+                });
+            })
             // Filter by car type
             ->when($filters['carType'] ?? null, function ($query, $carType) {
                 $query->where('car_type', $carType);
@@ -71,7 +81,7 @@ class CarController extends Controller
 
     public function show($slug)
     {
-        $vehicle = Vehicle::where('slug', $slug)->with(['locations', 'rentalTypes', 'fuelType', 'transmission'])->firstOrFail();
+        $vehicle = Vehicle::publiclyVisible()->where('slug', $slug)->with(['locations', 'rentalTypes', 'fuelType', 'transmission'])->firstOrFail();
 
         // Luăm doar intervalele care trebuie blocate în calendar
         $bookedRanges = Booking::query()
@@ -91,7 +101,7 @@ class CarController extends Controller
 
         return Inertia::render('Car/Show', [
             'vehicle' => $vehicle,
-            'similarVehicles' => Vehicle::where('id', '!=', $vehicle->id)
+            'similarVehicles' => Vehicle::publiclyVisible()->where('id', '!=', $vehicle->id)
                 ->with(['locations', 'rentalTypes', 'fuelType', 'transmission'])
                 ->withCount(['reviews as reviews_nr'])
                 ->withAvg('reviews as average_rating', 'rating')

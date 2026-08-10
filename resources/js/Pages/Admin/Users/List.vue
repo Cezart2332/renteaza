@@ -174,6 +174,26 @@
                                                 <div
                                                     class="tw-flex tw-items-center tw-justify-center tw-gap-2"
                                                 >
+                                                    <!-- Aprobarea era accesibila doar prin edit -> documente
+                                                         personale. Acum se poate face direct din lista. -->
+                                                    <button
+                                                        v-if="row.status !== 'accepted'"
+                                                        type="button"
+                                                        title="Acceptă utilizatorul"
+                                                        class="tw-rounded-lg tw-bg-emerald-600 tw-px-2.5 tw-py-1 tw-text-xs tw-font-semibold tw-text-white hover:tw-bg-emerald-700"
+                                                        @click="setUserStatus(row, 'accepted')"
+                                                    >
+                                                        Acceptă
+                                                    </button>
+                                                    <button
+                                                        v-if="row.status !== 'declined'"
+                                                        type="button"
+                                                        title="Respinge utilizatorul"
+                                                        class="tw-rounded-lg tw-bg-[var(--theme)] tw-px-2.5 tw-py-1 tw-text-xs tw-font-semibold tw-text-white hover:tw-brightness-95"
+                                                        @click="setUserStatus(row, 'declined')"
+                                                    >
+                                                        Respinge
+                                                    </button>
                                                     <inertia-link
                                                         :href="
                                                             route(
@@ -334,6 +354,14 @@ import { ChevronDownIcon } from "@heroicons/vue/20/solid";
 import AdminDashboardLayout from "@/Layouts/AdminDashboardLayout.vue";
 
 // props
+function setUserStatus(row, status) {
+    router.put(
+        route("admin.users.status.update", row.id),
+        { status },
+        { preserveScroll: true, preserveState: false }
+    );
+}
+
 const props = defineProps({
     users: {
         type: Array,

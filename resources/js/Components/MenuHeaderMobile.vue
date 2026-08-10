@@ -215,10 +215,10 @@
                             </inertia-link>
                             <inertia-link
                                 v-else
-                                :href="route('user.profile.show')"
+                                :href="dashboardLink.href"
                                 class="tw-block tw-w-full tw-rounded-lg tw-border tw-border-[var(--theme2)]/40 tw-bg-[var(--theme)] hover:tw-bg-[var(--theme2)] tw-px-4 tw-py-3 tw-text-center tw-font-semibold tw-text-white tw-transition"
                             >
-                                Dashboard
+                                {{ dashboardLink.label }}
                             </inertia-link>
                         </div>
                     </nav>
@@ -229,8 +229,8 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount } from "vue";
-import { Link } from "@inertiajs/vue3"; // dacă folosești <Link>. Dacă ai alias pentru <inertia-link>, schimbă aici.
+import { computed, onMounted, onBeforeUnmount } from "vue";
+import { Link, usePage } from "@inertiajs/vue3"; // dacă folosești <Link>. Dacă ai alias pentru <inertia-link>, schimbă aici.
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/vue";
 import { ChevronDownIcon } from "@heroicons/vue/20/solid";
 
@@ -239,6 +239,24 @@ const props = defineProps({
     logoSrc: { type: String, default: "/images/logo_renteaza.svg" },
     ctaHref: { type: String, default: "/#rezerva" },
 });
+const page = usePage();
+
+/** Aceeasi prioritate ca in Header.vue: admin -> user -> company-owner. */
+const dashboardLink = computed(() => {
+    const roles = (page.props.user?.roles ?? []).map((r) => r.name);
+
+    if (roles.includes("admin")) {
+        return { href: route("admin.dashboard"), label: "Panou administrare" };
+    }
+    if (roles.includes("user")) {
+        return { href: route("user.dashboard"), label: "Dashboard" };
+    }
+    if (roles.includes("company-owner")) {
+        return { href: route("company-owner.profile.edit"), label: "Pagina firmei" };
+    }
+    return { href: route("dashboard"), label: "Contul meu" };
+});
+
 const emit = defineEmits(["update:open"]);
 
 const close = () => emit("update:open", false);

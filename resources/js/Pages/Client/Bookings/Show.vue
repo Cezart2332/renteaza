@@ -375,8 +375,7 @@ const steps = computed(() => ([
    Actions (adjust routes if your names differ)
 --------------------------------------------------------- */
 function acceptBooking() {
-    // update this route name if your accept URL is different
-    router.post(route('user.bookings.accept', { booking: props.booking.id }), {}, {
+    router.post(route('user.bookings.approve', { bookingId: props.booking.id }), {}, {
         preserveScroll: true,
     })
 }

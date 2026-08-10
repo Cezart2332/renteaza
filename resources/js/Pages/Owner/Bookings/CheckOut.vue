@@ -157,8 +157,7 @@ const submit = () => {
     files.value.forEach((f, idx) => fd.append('photos[]', f, `checkout_${idx + 1}.jpg`))
     if (notes.value) fd.append('notes', notes.value)
 
-    // schimbă numele rutei dacă ai alt prefix
-    router.post(route('owner.bookings.checkout.store', { booking: props.booking.id }), fd, {
+    router.post(route('user.bookings.checkout.store', { booking: props.booking.id }), fd, {
         forceFormData: true,
         preserveScroll: true,
         onFinish: () => { uploading.value = false },

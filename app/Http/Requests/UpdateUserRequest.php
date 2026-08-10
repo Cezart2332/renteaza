@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\UserStatus;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateUserRequest extends FormRequest
 {
@@ -25,6 +27,9 @@ class UpdateUserRequest extends FormRequest
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . $this->id,
             'phone' => 'nullable|string|max:15',
+            // Formularul de editare trimitea 'status', dar nefiind validat era
+            // aruncat silentios de $request->validated() si nu se salva niciodata.
+            'status' => ['nullable', Rule::in(UserStatus::values())],
         ];
     }
 }

@@ -32,8 +32,10 @@ class SubmitCheckInPhotosAction
             ]);
 
             // 2) salvează pozele (pe disk-ul "public" pentru început)
-            //    ex: bookings/{booking_id}/checkin/{submission_id}/slot_1.jpg
-            $baseDir = "bookings/{$booking->id}/checkin/{$submission->id}";
+            //    ex: bookings/{booking_id}/checkout/{submission_id}/slot_1.jpg
+            //    Directorul urmeaza tipul, altfel pozele de check-out ar ateriza
+            //    peste cele de check-in.
+            $baseDir = "bookings/{$booking->id}/{$type}/{$submission->id}";
 
             foreach ($photos as $idx => $file) {
                 $position = $idx + 1;
@@ -55,8 +57,13 @@ class SubmitCheckInPhotosAction
             }
 
             // 3) actualizează booking status
+            //    Actiunea primeste $type, dar seta mereu CheckInSubmitted, deci
+            //    trimiterea pozelor de check-out intorcea rezervarea inapoi in
+            //    faza de check-in.
             $booking->update([
-                'status' => ReservationStatus::CheckInSubmitted->value,
+                'status' => $type === 'checkout'
+                    ? ReservationStatus::CheckOutSubmitted->value
+                    : ReservationStatus::CheckInSubmitted->value,
             ]);
 
             return $submission;

@@ -15,8 +15,6 @@
     </div>
     <div class="car-rentals-wrapper">
       <div class="array-button">
-        <button class="array-prev"><i class="far fa-chevron-left"></i></button>
-        <button class="array-next"><i class="far fa-chevron-right"></i></button>
       </div>
       <div class="swiper car-rentals-slider">
         <div class="swiper-wrapper">

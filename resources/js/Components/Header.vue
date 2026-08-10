@@ -128,11 +128,11 @@
                         </div>
 
                         <!-- search-icon (border la ≥ xl) -->
-                        <a href="#"
+                        <button type="button" @click="emit('open-search')"
                             class="tw-hidden sm:tw-inline-block tw-text-[var(--header)] tw-text-[24px] xl:tw-border-l xl:tw-border-[var(--border)] xl:tw-pl-[30px] hover:tw-text-[var(--theme)]"
-                            title="Căutare">
+                            title="Căutare" aria-label="Deschide căutarea">
                             <i class="fa-regular fa-magnifying-glass"></i>
-                        </a>
+                        </button>
 
                         <!-- HAMBURGER - DOAR MOBIL -->
                         <button class="sm:tw-hidden tw-my-auto text-[20px] text-[var(--header)]"
@@ -147,25 +147,15 @@
         <!-- BUTON „LIPIT” la dreapta (wedge absolut) -->
         <div
             class="tw-hidden 2xl:tw-flex tw-items-center tw-absolute tw-inset-y-0 tw-right-0 tw-z-[1000] tw-bg-[var(--theme)] hover:tw-bg-[var(--theme2)] tw-w-[360px] [clip-path:polygon(12%_0,100%_0,100%_100%,0%_100%)]">
+            <!-- Un singur buton, indiferent cate roluri are contul.
+                 Inainte erau trei v-if independente, deci un proprietar
+                 (care are si 'user', si 'company-owner') primea doua butoane
+                 identice. Ordinea de prioritate e aceeasi ca la login. -->
             <template v-if="page.props.user">
-                <div v-if="authUserHasRole('user')">
-                    <inertia-link :href="route('user.profile.show')"
-                        class="tw-h-full tw-w-full tw-flex tw-items-center tw-justify-center tw-text-white tw-text-[16px] tw-font-medium tw-px-[40px]">
-                        Intră în Dashboard
-                    </inertia-link>
-                </div>
-                <div v-if="authUserHasRole('company-owner')">
-                    <inertia-link :href="route('company-owner.profile.edit')"
-                        class="tw-h-full tw-w-full tw-flex tw-items-center tw-justify-center tw-text-white tw-text-[16px] tw-font-medium tw-px-[40px]">
-                        Intră în Dashboard
-                    </inertia-link>
-                </div>
-                <div v-if="authUserHasRole('admin')">
-                    <inertia-link :href="route('admin.dashboard')"
-                        class="tw-h-full tw-w-full tw-flex tw-items-center tw-justify-center tw-text-white tw-text-[16px] tw-font-medium tw-px-[40px]">
-                        Intră în Dashboard
-                    </inertia-link>
-                </div>
+                <inertia-link :href="dashboardLink.href"
+                    class="tw-h-full tw-w-full tw-flex tw-items-center tw-justify-center tw-text-white tw-text-[16px] tw-font-medium tw-px-[40px]">
+                    {{ dashboardLink.label }}
+                </inertia-link>
             </template>
             <template v-else>
                 <inertia-link :href="route('login')"
@@ -179,12 +169,34 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import MenuHeaderMobile from "./MenuHeaderMobile.vue";
 import { Link, usePage } from "@inertiajs/vue3";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/vue";
 import { ChevronDownIcon } from "@heroicons/vue/20/solid";
 
+const emit = defineEmits(["open-search"]);
+
 const page = usePage();
+
+/**
+ * Un cont poate avea mai multe roluri (un proprietar are si 'user', si
+ * 'company-owner'). Aceeasi ordine de prioritate ca in
+ * AuthenticatedSessionController: admin -> user -> company-owner.
+ */
+const dashboardLink = computed(() => {
+    const roles = (page.props.user?.roles ?? []).map((r) => r.name);
+
+    if (roles.includes("admin")) {
+        return { href: route("admin.dashboard"), label: "Panou administrare" };
+    }
+    if (roles.includes("user")) {
+        return { href: route("user.dashboard"), label: "Intră în Dashboard" };
+    }
+    if (roles.includes("company-owner")) {
+        return { href: route("company-owner.profile.edit"), label: "Pagina firmei" };
+    }
+    return { href: route("dashboard"), label: "Contul meu" };
+});
 const isMobileMenuOpen = ref(false);
 </script>

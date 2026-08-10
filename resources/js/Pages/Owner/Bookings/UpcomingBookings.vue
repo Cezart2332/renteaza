@@ -48,7 +48,7 @@ const list = ref([...props.upcomingList]);
 function approve(id) {
     router.post(
         route("user.bookings.approve", id),
-        { status: "accepted" },
+        {},
         {
             onSuccess: () => {
                 list.value = list.value.filter((b) => b.id !== id);
@@ -60,7 +60,7 @@ function approve(id) {
 function reject(id) {
     router.post(
         route("user.bookings.reject", id),
-        { status: "cancelled" },
+        {},
         {
             onSuccess: () => {
                 list.value = list.value.filter((b) => b.id !== id);

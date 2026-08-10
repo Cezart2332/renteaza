@@ -187,8 +187,14 @@ class AdminUsersController extends Controller
         $status = $request->status;
 
         if (in_array($status, DocumentStatus::values())) {
-            $vehicle->update(['status' => $status]);
-            $vehicle->update(['is_verified' => true]);
+            // is_verified se seta 'true' si la respingere, deci o masina refuzata
+            // ramanea marcata ca verificata. Acum urmeaza statusul, intr-un
+            // singur UPDATE.
+            $vehicle->update([
+                'status' => $status,
+                'is_verified' => $status === DocumentStatus::ACTIVE->value,
+            ]);
+
             return redirect()->back()->with('message', 'Status actualizat.');
         }
 

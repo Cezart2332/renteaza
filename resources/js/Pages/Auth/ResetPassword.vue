@@ -33,7 +33,7 @@ const submit = () => {
 
 <template>
     <GuestLayout>
-        <Head title="Reset Password" />
+        <Head title="Resetare parolă" />
 
         <form @submit.prevent="submit">
             <div>
@@ -42,58 +42,58 @@ const submit = () => {
                 <TextInput
                     id="email"
                     type="email"
-                    class="mt-1 block w-full"
+                    class="tw-mt-1 tw-block tw-w-full"
                     v-model="form.email"
                     required
                     autofocus
                     autocomplete="username"
                 />
 
-                <InputError class="mt-2" :message="form.errors.email" />
+                <InputError class="tw-mt-2" :message="form.errors.email" />
             </div>
 
-            <div class="mt-4">
-                <InputLabel for="password" value="Password" />
+            <div class="tw-mt-4">
+                <InputLabel for="password" value="Parolă" />
 
                 <TextInput
                     id="password"
                     type="password"
-                    class="mt-1 block w-full"
+                    class="tw-mt-1 tw-block tw-w-full"
                     v-model="form.password"
                     required
                     autocomplete="new-password"
                 />
 
-                <InputError class="mt-2" :message="form.errors.password" />
+                <InputError class="tw-mt-2" :message="form.errors.password" />
             </div>
 
-            <div class="mt-4">
+            <div class="tw-mt-4">
                 <InputLabel
                     for="password_confirmation"
-                    value="Confirm Password"
+                    value="Confirmă parola"
                 />
 
                 <TextInput
                     id="password_confirmation"
                     type="password"
-                    class="mt-1 block w-full"
+                    class="tw-mt-1 tw-block tw-w-full"
                     v-model="form.password_confirmation"
                     required
                     autocomplete="new-password"
                 />
 
                 <InputError
-                    class="mt-2"
+                    class="tw-mt-2"
                     :message="form.errors.password_confirmation"
                 />
             </div>
 
-            <div class="mt-4 flex items-center justify-end">
+            <div class="tw-mt-4 tw-flex tw-items-center tw-justify-end">
                 <PrimaryButton
-                    :class="{ 'opacity-25': form.processing }"
+                    :class="{ 'tw-opacity-25': form.processing }"
                     :disabled="form.processing"
                 >
-                    Reset Password
+                    Resetare parolă
                 </PrimaryButton>
             </div>
         </form>

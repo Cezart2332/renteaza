@@ -55,7 +55,9 @@ log "MySQL e sus"
 
 # ------------------------------------------- migrari / seed / storage
 if [ "$APP_INIT" = "1" ]; then
-    php artisan storage:link || true
+    if [ ! -L public/storage ]; then
+        php artisan storage:link >/dev/null 2>&1 || true
+    fi
 
     log "rulez migrarile"
     php artisan migrate --force

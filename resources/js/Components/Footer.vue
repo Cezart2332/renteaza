@@ -95,13 +95,5 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
 
-const email = ref('')
-
-function submitNewsletter() {
-  if (!email.value) return alert('Please enter a valid email.')
-  alert(`Subscribed with ${email.value}`)
-  email.value = ''
-}
 </script>

@@ -47,6 +47,6 @@ class StripeConnectController extends Controller
 
     public function refresh()
     {
-        return redirect()->route('owner.payments.connect.start');
+        return redirect()->route('user.payments.connect.start');
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\DocumentStatus;
 use App\Enums\DocumentType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -48,6 +49,21 @@ class Vehicle extends Model
         'availability_calendar' => 'array',
         'car_type' => CarType::class,
     ];
+
+    /**
+     * Vehiculele vizibile pentru vizitatori.
+     *
+     * Coloana `status` are default 'pending' la creare (OwnerCarController::store),
+     * iar adminul o trece pe 'active' cand aproba masina. Pana atunci masina nu
+     * are ce cauta in listarile publice.
+     *
+     * Trebuie folosit in TOATE locurile care expun vehicule catre public:
+     * routes/web.php (landing), CarController::index, ::show si masinile similare.
+     */
+    public function scopePubliclyVisible($query)
+    {
+        return $query->where('status', DocumentStatus::ACTIVE->value);
+    }
 
     public function vehicleType()
     {

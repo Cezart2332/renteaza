@@ -345,7 +345,7 @@ const logout = () => {
     router.post(route("logout"));
 };
 
-const companyOwnerRoutes = [
+const companyOwnerRoutesBase = [
     {
         name: "Mini Site",
         route: "company-owner.profile.edit",
@@ -353,6 +353,22 @@ const companyOwnerRoutes = [
         current: false,
     },
 ];
+
+/** Drumul invers: din mini-site inapoi in dashboard-ul de proprietar. */
+const companyOwnerRoutes = computed(() => {
+    const roles = (page.props.user?.roles ?? []).map((r) => r.name);
+    if (!roles.includes("user")) return companyOwnerRoutesBase;
+
+    return [
+        {
+            name: "Mașinile mele",
+            route: "user.cars.index",
+            icon: UserCircleIcon,
+            current: false,
+        },
+        ...companyOwnerRoutesBase,
+    ];
+});
 
 const sidebarOpen = ref(false);
 </script>

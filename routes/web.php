@@ -22,6 +22,7 @@ Route::get('/', function () {
         'locations' => Location::select('id', 'name')->get(),
         'carTypes' => CarType::values(),
         'vehicles' => Vehicle::query()
+            ->publiclyVisible()
             ->with(['locations', 'rentalTypes', 'fuelType', 'transmission'])
             // ->whereDoesntHave('bookings', function ($q) {
             //     $q->where('start_date', '<=', now())

@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\ClientBookingController;
 use App\Http\Controllers\ClientReviewController;
-use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\Owner\OwnerBookingController;
 use App\Http\Controllers\Owner\OwnerCarController;
@@ -178,5 +177,3 @@ Route::get('/calendar/vehicle/{vehicleSlug}/bookings/{bookingId}', [OwnerCalenda
 /* --------------------------------------------------------------------------
  * 10) COMPANY (setări companie)
  * -------------------------------------------------------------------------- */
-Route::get('/company', [CompanyController::class, 'edit'])->name('dashboard.company.edit');
-Route::post('/company/{company}', [CompanyController::class, 'update'])->name('dashboard.company.update');

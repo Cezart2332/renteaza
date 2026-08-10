@@ -23,10 +23,6 @@ class UserRedirectIfAuthenticated
                 return redirect()->route('admin.dashboard');
             }
 
-            if ($user->hasRole('super-admin')) {
-                return redirect()->route('super-admin.dashboard');
-            }
-
             if ($user->hasRole('user')) {
                 return redirect()->route('user.dashboard', $user->id);
             }

@@ -458,7 +458,7 @@ const logout = () => {
     router.post(route("logout"));
 };
 
-const ownerRoutes = [
+const ownerRoutesBase = [
     // { name: 'Rezervările mele', href: '#', icon: UsersIcon, current: false },
     {
         name: "Mașinile mele",
@@ -492,6 +492,26 @@ const ownerRoutes = [
     //     current: false,
     // },
 ];
+
+/**
+ * Zonele de proprietar erau doua insule fara nicio legatura intre ele: din
+ * dashboard nu se putea ajunge la mini-site-ul firmei, motiv pentru care
+ * header-ul ajunsese sa afiseze doua butoane separate.
+ */
+const ownerRoutes = computed(() => {
+    const roles = (page.props.user?.roles ?? []).map((r) => r.name);
+    if (!roles.includes("company-owner")) return ownerRoutesBase;
+
+    return [
+        ...ownerRoutesBase,
+        {
+            name: "Pagina firmei",
+            route: "company-owner.profile.edit",
+            icon: UserCircleIcon,
+            current: false,
+        },
+    ];
+});
 const clientRoutes = [
     {
         name: "Profil",

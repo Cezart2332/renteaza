@@ -28,6 +28,7 @@ class AdminCheckinReviewController extends Controller
             ->through(function ($s) {
                 return [
                     'id'          => $s->id,
+                    'type'        => $s->type, // 'checkin' | 'checkout'
                     'submitted_at' => $s->created_at->toDateTimeString(),
                     'booking'     => [
                         'id'     => $s->booking->id,
@@ -50,19 +51,33 @@ class AdminCheckinReviewController extends Controller
     {
         abort_if($submission->status !== 'pending', 409, 'Submission already reviewed.');
 
-        DB::transaction(function () use ($submission) {
+        $isCheckout = $submission->type === 'checkout';
+
+        DB::transaction(function () use ($submission, $isCheckout) {
             $submission->update(['status' => 'approved']);
             $booking = $submission->booking()->lockForUpdate()->first();
-            $booking->update(['status' => ReservationStatus::CheckInApproved->value]);
 
-            app(StartContractAction::class)->execute($booking, auth()->id());
+            $booking->update([
+                'status' => $isCheckout
+                    ? ReservationStatus::CheckOutApproved->value
+                    : ReservationStatus::CheckInApproved->value,
+            ]);
+
+            // Contractul se genereaza o singura data, la check-in. Fara conditia
+            // asta, aprobarea unui check-out il regenera peste cel semnat.
+            if (! $isCheckout) {
+                app(StartContractAction::class)->execute($booking, auth()->id());
+            }
 
             // notificări (null-safe; presupunem relațiile booking->owner, booking->client)
             $booking->owner?->notify(new CheckInApprovedNotification($booking->id, $submission->id));
             $booking->client?->notify(new CheckInApprovedNotification($booking->id, $submission->id));
         });
 
-        return back()->with('success', 'Check-in aprobat. Contractul a fost generat.');
+        return back()->with(
+            'success',
+            $isCheckout ? 'Check-out aprobat.' : 'Check-in aprobat. Contractul a fost generat.'
+        );
     }
 
     public function reject(CheckinSubmission $submission, Request $request)
@@ -70,15 +85,22 @@ class AdminCheckinReviewController extends Controller
         abort_if($submission->status !== 'pending', 409, 'Submission already reviewed.');
         $data = $request->validate(['reason' => ['required', 'string', 'max:1000']]);
 
-        DB::transaction(function () use ($submission, $data) {
+        $isCheckout = $submission->type === 'checkout';
+
+        DB::transaction(function () use ($submission, $data, $isCheckout) {
             $submission->update(['status' => 'rejected', 'notes' => $data['reason']]);
             $booking = $submission->booking()->lockForUpdate()->first();
-            $booking->update(['status' => ReservationStatus::CheckInRejected->value]);
+
+            $booking->update([
+                'status' => $isCheckout
+                    ? ReservationStatus::CheckOutRejected->value
+                    : ReservationStatus::CheckInRejected->value,
+            ]);
 
             $booking->owner?->notify(new CheckInRejectedNotification($booking->id, $submission->id, $data['reason']));
             $booking->client?->notify(new CheckInRejectedNotification($booking->id, $submission->id, $data['reason']));
         });
 
-        return back()->with('success', 'Check-in respins.');
+        return back()->with('success', $isCheckout ? 'Check-out respins.' : 'Check-in respins.');
     }
 }

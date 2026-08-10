@@ -33,6 +33,12 @@ Route::get('/dashboard', [AdminController::class, 'dashboard'])
     ->name('dashboard'); // ex: admin.dashboard în zona admin
 
 /* --------------------------------------------------------------------------
+ * 1b) VEHICULE — listă globală, punctul de plecare pentru aprobări
+ * -------------------------------------------------------------------------- */
+Route::get('/vehicles', [AdminController::class, 'vehicles'])
+    ->name('vehicles.index');
+
+/* --------------------------------------------------------------------------
  * 2) USERS MANAGEMENT (listare, editare, update, ștergere)
  * -------------------------------------------------------------------------- */
 Route::get('/users', [AdminUsersController::class, 'index'])

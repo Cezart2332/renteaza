@@ -24,7 +24,7 @@ watch(
     () => props.show,
     () => {
         if (props.show) {
-            document.body.style.overflow = 'hidden';
+            document.body.style.overflow = 'tw-hidden';
             showSlot.value = true;
 
             dialog.value?.showModal();
@@ -65,54 +65,54 @@ onUnmounted(() => {
 
 const maxWidthClass = computed(() => {
     return {
-        sm: 'sm:max-w-sm',
-        md: 'sm:max-w-md',
-        lg: 'sm:max-w-lg',
-        xl: 'sm:max-w-xl',
-        '2xl': 'sm:max-w-2xl',
+        sm: 'sm:tw-max-w-sm',
+        md: 'sm:tw-max-w-md',
+        lg: 'sm:tw-max-w-lg',
+        xl: 'sm:tw-max-w-xl',
+        '2xl': 'sm:tw-max-w-2xl',
     }[props.maxWidth];
 });
 </script>
 
 <template>
     <dialog
-        class="z-50 m-0 min-h-full min-w-full overflow-y-auto bg-transparent backdrop:bg-transparent"
+        class="tw-z-50 tw-m-0 tw-min-h-full tw-min-w-full tw-overflow-y-auto tw-bg-transparent backdrop:tw-bg-transparent"
         ref="dialog"
     >
         <div
-            class="fixed inset-0 z-50 overflow-y-auto px-4 py-6 sm:px-0"
+            class="tw-fixed tw-inset-0 tw-z-50 tw-overflow-y-auto tw-px-4 tw-py-6 sm:tw-px-0"
             scroll-region
         >
             <Transition
-                enter-active-class="ease-out duration-300"
-                enter-from-class="opacity-0"
-                enter-to-class="opacity-100"
-                leave-active-class="ease-in duration-200"
-                leave-from-class="opacity-100"
-                leave-to-class="opacity-0"
+                enter-active-class="tw-ease-out tw-duration-300"
+                enter-from-class="tw-opacity-0"
+                enter-to-class="tw-opacity-100"
+                leave-active-class="tw-ease-in tw-duration-200"
+                leave-from-class="tw-opacity-100"
+                leave-to-class="tw-opacity-0"
             >
                 <div
                     v-show="show"
-                    class="fixed inset-0 transform transition-all"
+                    class="tw-fixed tw-inset-0 tw-transform tw-transition-all"
                     @click="close"
                 >
                     <div
-                        class="absolute inset-0 bg-gray-500 opacity-75"
+                        class="tw-absolute tw-inset-0 tw-bg-gray-500 tw-opacity-75"
                     />
                 </div>
             </Transition>
 
             <Transition
-                enter-active-class="ease-out duration-300"
-                enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                enter-to-class="opacity-100 translate-y-0 sm:scale-100"
-                leave-active-class="ease-in duration-200"
-                leave-from-class="opacity-100 translate-y-0 sm:scale-100"
-                leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                enter-active-class="tw-ease-out tw-duration-300"
+                enter-from-class="tw-opacity-0 tw-translate-y-4 sm:tw-translate-y-0 sm:tw-scale-95"
+                enter-to-class="tw-opacity-100 tw-translate-y-0 sm:tw-scale-100"
+                leave-active-class="tw-ease-in tw-duration-200"
+                leave-from-class="tw-opacity-100 tw-translate-y-0 sm:tw-scale-100"
+                leave-to-class="tw-opacity-0 tw-translate-y-4 sm:tw-translate-y-0 sm:tw-scale-95"
             >
                 <div
                     v-show="show"
-                    class="mb-6 transform overflow-hidden rounded-lg bg-white shadow-xl transition-all sm:mx-auto sm:w-full"
+                    class="tw-mb-6 tw-transform tw-overflow-hidden tw-rounded-lg tw-bg-white tw-shadow-xl tw-transition-all sm:tw-mx-auto sm:tw-w-full"
                     :class="maxWidthClass"
                 >
                     <slot v-if="showSlot" />

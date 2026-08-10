@@ -40,7 +40,7 @@
                                     <ul role="list" class="tw-flex tw-flex-1 tw-flex-col tw-gap-y-7">
                                         <li>
                                             <ul role="list" class="tw--mx-2 tw-space-y-1">
-                                                <li v-for="item in ownerRoutes" :key="item.name">
+                                                <li v-for="item in adminRoutes" :key="item.name">
                                                     <inertia-link :href="item.href" :class="[
                                                         route().current(
                                                             item.href
@@ -205,23 +205,6 @@ import {
     CheckCircleIcon,
     XCircleIcon,
 } from "@heroicons/vue/24/outline";
-import ToggleWithLabel from "@/Components/ToggleWithLabel.vue";
-
-const props = defineProps({
-    selectedRole: {
-        type: String,
-    },
-});
-
-const dashboardRole = ref(props.selectedRole);
-
-function handleRoleChange(role) {
-    dashboardRole.value = role;
-
-    router.get(route("user.dashboard"), {
-        selectedRole: dashboardRole.value,
-    });
-}
 
 const page = usePage();
 const show = ref(false);
@@ -262,6 +245,12 @@ const adminRoutes = [
         name: "Utilizatori",
         route: "admin.users.index",
         icon: UsersIcon,
+        current: false,
+    },
+    {
+        name: "Mașini",
+        route: "admin.vehicles.index",
+        icon: FolderIcon,
         current: false,
     },
     {

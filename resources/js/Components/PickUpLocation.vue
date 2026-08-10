@@ -83,7 +83,7 @@
           <button class="array-prev-2"><i class="far fa-chevron-left"></i></button>
           <button class="array-next-2"><i class="far fa-chevron-right"></i></button>
         </div>
-        <swiper class="brand-slider" :modules="[Autoplay]" :loop="true" :slides-per-view="3"
+        <swiper class="brand-slider" :modules="[Autoplay, Navigation]" :navigation="{ nextEl: '.array-next-2', prevEl: '.array-prev-2' }" :loop="true" :slides-per-view="3"
           :autoplay="{ delay: 2000 }">
           <swiper-slide v-for="(img, index) in brandImages" :key="index">
             <div class="brand-image">
@@ -100,7 +100,8 @@
 import { ref } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { Swiper, SwiperSlide } from 'swiper/vue'
-import { Autoplay } from 'swiper/modules'
+import { Autoplay, Navigation } from 'swiper/modules'
+import 'swiper/css/navigation'
 import 'swiper/css'
 
 // Props from parent

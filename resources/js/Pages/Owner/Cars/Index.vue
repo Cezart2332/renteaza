@@ -1,5 +1,20 @@
 <template>
     <OwnerDashboardLayout>
+        <div
+            v-if="pendingCount"
+            class="tw-mx-4 tw-mt-8 tw-rounded-xl tw-border tw-border-amber-300 tw-bg-amber-50 tw-px-5 tw-py-4 sm:tw-mx-6 lg:tw-mx-8"
+        >
+            <p class="tw-text-sm tw-font-semibold tw-text-amber-900">
+                {{ pendingCount }}
+                {{ pendingCount === 1 ? "mașină așteaptă" : "mașini așteaptă" }}
+                aprobarea administratorului.
+            </p>
+            <p class="tw-mt-1 tw-text-sm tw-text-amber-800">
+                Până atunci nu apar în căutările clienților. Încarcă documentele
+                mașinii ca verificarea să meargă mai repede.
+            </p>
+        </div>
+
         <div class="sm:tw-flex sm:tw-flex-row sm:tw-items-start tw-mt-12">
             <!-- Filter section -->
             <div class="tw-px-4 sm:tw-px-6 lg:tw-px-8 tw-w-12/12 sm:tw-w-3/12">
@@ -307,7 +322,7 @@
                                                 class="tw-w-3 tw-h-3 tw-rounded-full"
                                             ></div>
                                             <span>
-                                                {{ car.status }}
+                                                {{ statusLabel(car.status) }}
                                             </span>
                                         </div>
                                     </td>
@@ -448,8 +463,18 @@
 import Toggle from "@/Components/Toggle.vue";
 import WebPagination from "@/Components/WebPagination.vue";
 import OwnerDashboardLayout from "@/Layouts/OwnerDashboardLayout.vue";
-import { reactive } from "vue";
+import { computed, reactive } from "vue";
 import { router } from "@inertiajs/vue3";
+
+const STATUS_LABELS = {
+    active: "Activă",
+    pending: "În așteptare",
+    inactive: "Respinsă",
+};
+
+function statusLabel(status) {
+    return STATUS_LABELS[status] ?? status;
+}
 
 const props = defineProps({
     cars: { type: Object, required: true },
@@ -465,6 +490,10 @@ const props = defineProps({
     },
     facets: { type: Object, default: () => ({ brands: [] }) },
 });
+
+const pendingCount = computed(
+    () => (props.cars?.data ?? props.cars ?? []).filter((c) => c.status === 'pending').length
+);
 
 const filters = reactive({
     search: props.prev?.search ?? "",
