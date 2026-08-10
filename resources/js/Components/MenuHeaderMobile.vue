@@ -206,13 +206,20 @@
                         </ul>
 
                         <div class="mt-4">
-                            <inertia-link
-                                v-if="!$page.props.user"
-                                :href="route('login')"
-                                class="tw-block tw-w-full tw-rounded-lg tw-border tw-border-[var(--theme2)]/40 tw-bg-[var(--theme)] hover:tw-bg-[var(--theme2)] tw-px-4 tw-py-3 tw-text-center tw-font-semibold tw-text-white tw-transition"
-                            >
-                                Login
-                            </inertia-link>
+                            <template v-if="!$page.props.user">
+                                <inertia-link
+                                    :href="route('register')"
+                                    class="tw-block tw-w-full tw-rounded-lg tw-border tw-border-[var(--theme2)]/40 tw-bg-[var(--theme)] hover:tw-bg-[var(--theme2)] tw-px-4 tw-py-3 tw-text-center tw-font-semibold tw-text-white tw-transition"
+                                >
+                                    Înregistrează-te
+                                </inertia-link>
+                                <inertia-link
+                                    :href="route('login')"
+                                    class="tw-mt-2 tw-block tw-w-full tw-rounded-lg tw-border tw-border-gray-300 tw-px-4 tw-py-3 tw-text-center tw-font-semibold tw-text-gray-800 tw-transition hover:tw-bg-gray-50"
+                                >
+                                    Autentificare
+                                </inertia-link>
+                            </template>
                             <inertia-link
                                 v-else
                                 :href="route('user.profile.show')"
