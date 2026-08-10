@@ -10,11 +10,29 @@ RUN_SEEDERS="${RUN_SEEDERS:-false}"
 
 log() { echo "[entrypoint] $*"; }
 
+# APP_KEY nu se genereaza automat aici: fiecare pornire ar produce alta cheie,
+# sesiunile ar pica la fiecare redeploy, iar datele criptate ar deveni ilizibile.
+# Mai bine se opreste zgomotos decat sa porneasca cu o cheie efemera.
 if [ -z "${APP_KEY:-}" ]; then
-    log "EROARE: APP_KEY nu e setat. Genereaza unul si pune-l in Coolify:"
-    log "  php artisan key:generate --show"
+    log "EROARE: APP_KEY nu e setat."
+    log "Genereaza o cheie (pe serverul tau sau pe laptop, nu e nevoie de container):"
+    log ""
+    log "  echo \"base64:\$(openssl rand -base64 32)\""
+    log ""
+    log "si pune rezultatul in Coolify -> Environment Variables, ca APP_KEY."
     exit 1
 fi
+
+# Formatul corect e 'base64:' + 32 de octeti codificati. Fara prefix, Laravel
+# crapa mai tarziu cu un mesaj criptic despre cipher sau lungimea cheii.
+case "$APP_KEY" in
+    base64:*) ;;
+    *)
+        log "EROARE: APP_KEY nu incepe cu 'base64:'."
+        log "Valoarea trebuie sa arate asa: base64:xxxxxxxx...= (44 de caractere dupa prefix)"
+        exit 1
+        ;;
+esac
 
 # --------------------------------------------------------- directoare runtime
 # storage/app vine dintr-un volum persistent, deci poate fi gol la prima pornire

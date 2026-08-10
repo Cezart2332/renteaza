@@ -73,7 +73,6 @@ date. Coolify le creeaza la primul deploy si le pastreaza.
 | ----------------------- | --------------------------------------------------- |
 | `APP_KEY`               | `base64:...` (vezi mai jos)                          |
 | `APP_NAME`              | `RENTeaza`                                           |
-| `AWS_PUBLIC_URL`        | `https://renteaza.ro/storage`                        |
 | `GOOGLE_MAPS_API_KEY`   | cheia ta Google Maps                                 |
 | `STRIPE_KEY`            | `pk_live_...`                                        |
 | `STRIPE_SECRET`         | `sk_live_...`                                        |
@@ -86,28 +85,39 @@ date. Coolify le creeaza la primul deploy si le pastreaza.
 | `WISE_PROFILE_ID`       | idem                                                 |
 | `VONAGE_KEY` / `SECRET` | doar daca trimiti SMS                                |
 
-`APP_KEY` il generezi o singura data si nu-l mai schimbi niciodata — daca il
-schimbi, sesiunile si orice date criptate devin ilizibile:
+`APP_KEY` se genereaza cu o singura comanda, oriunde (server sau laptop) — nu e
+nevoie de container pornit:
 
 ```bash
-docker compose exec app php artisan key:generate --show
+echo "base64:$(openssl rand -base64 32)"
 ```
 
-### Doua dintre ele trebuie bifate ca **Build Variable**
+Il generezi **o singura data** si nu-l mai schimbi niciodata: daca il schimbi,
+sesiunile si orice date criptate devin ilizibile.
 
-```
-AWS_PUBLIC_URL
-GOOGLE_MAPS_API_KEY
-```
+Fara el, containerul `app` refuza sa porneasca si intra in bucla de restart.
+E intentionat — alternativa (sa generez una automat la fiecare pornire) ar
+insemna alta cheie la fiecare redeploy, deci deconectari si date criptate
+pierdute. Mai bine esueaza zgomotos.
 
-Vite nu citeste variabile la runtime: `VITE_AWS_PUBLIC_URL` si
-`VITE_GOOGLE_MAPS_API_KEY` se **compileaza in bundle-ul JavaScript** in timpul
-build-ului. Daca nu sunt disponibile la build, in JS-ul livrat raman goale si
-pozele masinilor apar ca `undefined/vehicles/...`, iar hartile nu se incarca.
+Nu refolosi cheia din `.env`-ul de dezvoltare: aceea e in repo.
 
-De aceea `AWS_PUBLIC_URL` trebuie sa fie corect **inainte** de primul build.
-E domeniul aplicatiei plus `/storage`. Daca schimbi ulterior domeniul,
-**redeploy cu rebuild**, nu doar restart.
+### `GOOGLE_MAPS_API_KEY` trebuie bifata ca **Build Variable**
+
+Vite nu citeste variabile la runtime: `VITE_GOOGLE_MAPS_API_KEY` se
+**compileaza in bundle-ul JavaScript** in timpul build-ului. Daca nu e
+disponibila atunci, ramane goala in JS-ul livrat si hartile nu se incarca.
+Cand o schimbi, ai nevoie de **redeploy cu rebuild**, nu doar restart.
+
+### `AWS_PUBLIC_URL` e optionala
+
+Nu o pune. Fisierele publice stau pe acelasi domeniu ca aplicatia, servite prin
+symlink-ul `public/storage`, iar frontend-ul foloseste implicit calea relativa
+`/storage/<path>`. Merge pe orice domeniu, pe http sau https, si nu se strica
+daca schimbi domeniul.
+
+O setezi doar daca pui un CDN in fata fisierelor (`https://cdn.domeniul-tau.ro`),
+si atunci trebuie bifata si ea ca Build Variable.
 
 ## 4. Primul deploy
 
@@ -211,7 +221,8 @@ alaturi:
 
 - `/up` raspunde `OK` (health-check-ul folosit de compose si de Coolify)
 - pagina principala raspunde 200, cu asset-uri compilate de Vite (fara dev server)
-- `VITE_AWS_PUBLIC_URL` chiar ajunge in `public/build/assets/app-*.js`
+- fara `AWS_PUBLIC_URL`, bundle-ul contine `` `/storage/${s}` `` (calea relativa),
+  iar cu ea setata contine valoarea data — verificat prin doua build-uri Vite
 - upload pe disk-urile `aws-public` si `aws-private`, cu fisierul public
   servit corect prin `/storage/...` si cel privat inaccesibil din web
 - cu header-ele `X-Forwarded-*` trimise de Traefik, Laravel genereaza corect

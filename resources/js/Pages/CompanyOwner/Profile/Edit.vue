@@ -832,8 +832,8 @@ function toPublicUrl(val) {
   if (/^data:|^blob:|^https?:\/\//i.test(val)) return val;
 
   // altfel e un path din S3 — prefixează cu base/cdn
-  const base = import.meta.env.VITE_AWS_PUBLIC_URL || "";
-  return base ? `${base}/${val}` : val; // fallback dacă salvezi deja URL complet
+  const base = import.meta.env.VITE_AWS_PUBLIC_URL || "/storage";
+  return `${base}/${val}`;
 }
 
 

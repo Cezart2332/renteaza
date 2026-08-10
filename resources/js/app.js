@@ -38,7 +38,13 @@ createInertiaApp({
                         return window.settings.images + "/" + path;
                     },
                     imageFromAwsPublic(path) {
-                        return `${import.meta.env.VITE_AWS_PUBLIC_URL}/${path}`;
+                        // Fisierele publice stau pe acelasi domeniu ca aplicatia,
+                        // servite prin symlink-ul public/storage, deci calea
+                        // relativa e suficienta si merge pe orice domeniu.
+                        // Variabila se seteaza doar daca pui un CDN in fata.
+                        const base =
+                            import.meta.env.VITE_AWS_PUBLIC_URL || "/storage";
+                        return `${base}/${path}`;
                     },
                 },
             })

@@ -70,6 +70,7 @@ Aplicatia porneste si fara ele, dar functionalitatile respective nu merg.
 Le pui in `.env` si dai `docker compose restart app queue vite`:
 
 - `VITE_GOOGLE_MAPS_API_KEY` — fara ea, hartile din pagini raman goale.
+  (`AWS_PUBLIC_URL` e optionala: implicit se foloseste `/storage`.)
 - `STRIPE_KEY` / `STRIPE_SECRET` — chei de test din dashboard-ul Stripe, pentru plati.
 - `WISE_API_TOKEN` / `WISE_PROFILE_ID` — payout-uri catre proprietari (sandbox).
 - `VONAGE_KEY` / `VONAGE_SECRET` — SMS-uri.
