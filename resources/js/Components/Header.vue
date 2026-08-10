@@ -168,16 +168,10 @@
                 </div>
             </template>
             <template v-else>
-                <div class="tw-flex tw-h-full tw-items-center tw-gap-1">
-                    <inertia-link :href="route('login')"
-                        class="tw-flex tw-items-center tw-justify-center tw-text-white tw-text-[16px] tw-font-medium tw-px-[24px] tw-py-2 tw-transition hover:tw-opacity-80">
-                        Autentificare
-                    </inertia-link>
-                    <inertia-link :href="route('register')"
-                        class="tw-flex tw-items-center tw-justify-center tw-rounded-lg tw-bg-white tw-text-[var(--theme)] tw-text-[16px] tw-font-semibold tw-px-[24px] tw-py-2 tw-mr-[16px] tw-transition hover:tw-bg-white/90">
-                        Înregistrează-te
-                    </inertia-link>
-                </div>
+                <inertia-link :href="route('login')"
+                    class="tw-h-full tw-w-full tw-flex tw-items-center tw-justify-center tw-text-white tw-text-[16px] tw-font-medium tw-px-[40px]">
+                    Înregistrează-te / Login
+                </inertia-link>
             </template>
         </div>
         <MenuHeaderMobile v-model:open="isMobileMenuOpen" />

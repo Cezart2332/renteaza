@@ -62,6 +62,7 @@ class DatabaseSeeder extends Seeder
             //FaqSeeder::class,
             RoleSeeder::class,
             AdminUserSeeder::class,
+            CompanyOwnerUserSeeder::class,
         ]);
     }
 }

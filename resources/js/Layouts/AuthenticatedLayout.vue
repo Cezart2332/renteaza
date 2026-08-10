@@ -1,198 +1,82 @@
 <script setup>
-import { ref } from 'vue';
-import ApplicationLogo from '@/Components/ApplicationLogo.vue';
-import Dropdown from '@/Components/Dropdown.vue';
-import DropdownLink from '@/Components/DropdownLink.vue';
-import NavLink from '@/Components/NavLink.vue';
-import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
-import { Link } from '@inertiajs/vue3';
+/**
+ * Layout simplu pentru paginile de cont generice (/dashboard si /profile).
+ *
+ * Varianta anterioara era scaffolding-ul Breeze nemodificat: 198 de linii cu
+ * clase Tailwind NEprefixate, intr-un proiect care are prefix 'tw-'. Nicio clasa
+ * nu se aplica, deci pagina se randa complet nestilizata (de aici si logo-ul
+ * urias). Zonele reale ale aplicatiei (/user, /admin, /company-owner) folosesc
+ * alte layout-uri, asa ca aici e nevoie doar de un cadru curat.
+ */
+import { Link, usePage } from "@inertiajs/vue3";
+import { computed } from "vue";
 
-const showingNavigationDropdown = ref(false);
+const page = usePage();
+// HandleInertiaRequests partajeaza 'user' cu roles[]
+const user = computed(() => page.props.user ?? null);
+
+function hasRole(name) {
+    return (user.value?.roles ?? []).some((r) => r.name === name);
+}
+
+// unde trimitem utilizatorul in zona lui reala de lucru
+const homeLink = computed(() => {
+    if (hasRole("admin")) return { href: route("admin.dashboard"), label: "Panou admin" };
+    if (hasRole("user")) return { href: route("user.dashboard"), label: "Panoul meu" };
+    if (hasRole("company-owner"))
+        return { href: route("company-owner.profile.edit"), label: "Pagina firmei" };
+    return { href: "/", label: "Acasă" };
+});
 </script>
 
 <template>
-    <div>
-        <div class="min-h-screen bg-gray-100">
-            <nav
-                class="border-b border-gray-100 bg-white"
+    <div class="tw-min-h-screen tw-bg-gray-50">
+        <header class="tw-border-b tw-border-gray-200 tw-bg-white">
+            <div
+                class="tw-mx-auto tw-flex tw-h-16 tw-max-w-6xl tw-items-center tw-justify-between tw-gap-4 tw-px-4 sm:tw-px-6 lg:tw-px-8"
             >
-                <!-- Primary Navigation Menu -->
-                <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div class="flex h-16 justify-between">
-                        <div class="flex">
-                            <!-- Logo -->
-                            <div class="flex shrink-0 items-center">
-                                <Link :href="route('dashboard')">
-                                    <ApplicationLogo
-                                        class="block h-9 w-auto fill-current text-gray-800"
-                                    />
-                                </Link>
-                            </div>
+                <Link href="/" class="tw-flex tw-items-center">
+                    <img
+                        src="/images/logo_renteaza.svg"
+                        alt="RENTeaza"
+                        class="tw-h-8 tw-w-auto"
+                    />
+                </Link>
 
-                            <!-- Navigation Links -->
-                            <div
-                                class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex"
-                            >
-                                <NavLink
-                                    :href="route('dashboard')"
-                                    :active="route().current('dashboard')"
-                                >
-                                    Dashboard
-                                </NavLink>
-                            </div>
-                        </div>
-
-                        <div class="hidden sm:ms-6 sm:flex sm:items-center">
-                            <!-- Settings Dropdown -->
-                            <div class="relative ms-3">
-                                <Dropdown align="right" width="48">
-                                    <template #trigger>
-                                        <span class="inline-flex rounded-md">
-                                            <button
-                                                type="button"
-                                                class="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
-                                            >
-                                                {{ $page.props.user.name }}
-
-                                                <svg
-                                                    class="-me-0.5 ms-2 h-4 w-4"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    viewBox="0 0 20 20"
-                                                    fill="currentColor"
-                                                >
-                                                    <path
-                                                        fill-rule="evenodd"
-                                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                        clip-rule="evenodd"
-                                                    />
-                                                </svg>
-                                            </button>
-                                        </span>
-                                    </template>
-
-                                    <template #content>
-                                        <DropdownLink
-                                            :href="route('profile.edit')"
-                                        >
-                                            Profile
-                                        </DropdownLink>
-                                        <DropdownLink
-                                            :href="route('logout')"
-                                            method="post"
-                                            as="button"
-                                        >
-                                            Log Out
-                                        </DropdownLink>
-                                    </template>
-                                </Dropdown>
-                            </div>
-                        </div>
-
-                        <!-- Hamburger -->
-                        <div class="-me-2 flex items-center sm:hidden">
-                            <button
-                                @click="
-                                    showingNavigationDropdown =
-                                        !showingNavigationDropdown
-                                "
-                                class="inline-flex items-center justify-center rounded-md p-2 text-gray-400 transition duration-150 ease-in-out hover:bg-gray-100 hover:text-gray-500 focus:bg-gray-100 focus:text-gray-500 focus:outline-none"
-                            >
-                                <svg
-                                    class="h-6 w-6"
-                                    stroke="currentColor"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        :class="{
-                                            hidden: showingNavigationDropdown,
-                                            'inline-flex':
-                                                !showingNavigationDropdown,
-                                        }"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M4 6h16M4 12h16M4 18h16"
-                                    />
-                                    <path
-                                        :class="{
-                                            hidden: !showingNavigationDropdown,
-                                            'inline-flex':
-                                                showingNavigationDropdown,
-                                        }"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Responsive Navigation Menu -->
-                <div
-                    :class="{
-                        block: showingNavigationDropdown,
-                        hidden: !showingNavigationDropdown,
-                    }"
-                    class="sm:hidden"
-                >
-                    <div class="space-y-1 pb-3 pt-2">
-                        <ResponsiveNavLink
-                            :href="route('dashboard')"
-                            :active="route().current('dashboard')"
-                        >
-                            Dashboard
-                        </ResponsiveNavLink>
-                    </div>
-
-                    <!-- Responsive Settings Options -->
-                    <div
-                        class="border-t border-gray-200 pb-1 pt-4"
+                <nav class="tw-flex tw-items-center tw-gap-1 sm:tw-gap-2">
+                    <Link
+                        :href="homeLink.href"
+                        class="tw-rounded-lg tw-px-3 tw-py-2 tw-text-[14px] tw-font-medium tw-text-gray-600 tw-transition hover:tw-bg-gray-100 hover:tw-text-gray-900"
                     >
-                        <div class="px-4">
-                            <div
-                                class="text-base font-medium text-gray-800"
-                            >
-                                {{ $page.props.user.name }}
-                            </div>
-                            <div class="text-sm font-medium text-gray-500">
-                                {{ $page.props.user.email }}
-                            </div>
-                        </div>
+                        {{ homeLink.label }}
+                    </Link>
+                    <Link
+                        :href="route('profile.edit')"
+                        class="tw-rounded-lg tw-px-3 tw-py-2 tw-text-[14px] tw-font-medium tw-text-gray-600 tw-transition hover:tw-bg-gray-100 hover:tw-text-gray-900"
+                    >
+                        Contul meu
+                    </Link>
+                    <Link
+                        :href="route('logout')"
+                        method="post"
+                        as="button"
+                        type="button"
+                        class="tw-rounded-lg tw-px-3 tw-py-2 tw-text-[14px] tw-font-medium tw-text-[var(--theme)] tw-transition hover:tw-bg-[var(--theme)]/5"
+                    >
+                        Ieși din cont
+                    </Link>
+                </nav>
+            </div>
+        </header>
 
-                        <div class="mt-3 space-y-1">
-                            <ResponsiveNavLink :href="route('profile.edit')">
-                                Profile
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink
-                                :href="route('logout')"
-                                method="post"
-                                as="button"
-                            >
-                                Log Out
-                            </ResponsiveNavLink>
-                        </div>
-                    </div>
-                </div>
-            </nav>
-
-            <!-- Page Heading -->
-            <header
-                class="bg-white shadow"
-                v-if="$slots.header"
-            >
-                <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-                    <slot name="header" />
-                </div>
-            </header>
-
-            <!-- Page Content -->
-            <main>
-                <slot />
-            </main>
+        <div v-if="$slots.header" class="tw-border-b tw-border-gray-200 tw-bg-white">
+            <div class="tw-mx-auto tw-max-w-6xl tw-px-4 tw-py-6 sm:tw-px-6 lg:tw-px-8">
+                <slot name="header" />
+            </div>
         </div>
+
+        <main class="tw-mx-auto tw-max-w-6xl tw-px-4 tw-py-8 sm:tw-px-6 lg:tw-px-8">
+            <slot />
+        </main>
     </div>
 </template>

@@ -6,53 +6,31 @@ import UpdateProfileInformationForm from "./Partials/UpdateProfileInformationFor
 import { Head } from "@inertiajs/vue3";
 
 defineProps({
-    mustVerifyEmail: {
-        type: Boolean,
-    },
-    status: {
-        type: String,
-    },
+    mustVerifyEmail: { type: Boolean },
+    status: { type: String },
 });
 </script>
 
 <template>
-    <Head title="Profile" />
+    <Head title="Contul meu" />
 
     <AuthenticatedLayout>
         <template #header>
-            <h2
-                class="tw-text-xl tw-font-semibold tw-leading-tight tw-text-gray-800"
-            >
-                Profile
+            <h2 class="tw-text-[22px] tw-font-bold tw-text-gray-900">
+                Contul meu
             </h2>
+            <p class="tw-mt-1 tw-text-[15px] tw-text-gray-500">
+                Datele de autentificare și setările contului.
+            </p>
         </template>
 
-        <div class="tw-py-12">
-            <div
-                class="tw-mx-auto tw-max-w-7xl tw-space-y-6 sm:tw-px-6 lg:tw-px-8"
-            >
-                <div
-                    class="tw-bg-white tw-p-4 tw-shadow sm:tw-rounded-lg sm:tw-p-8"
-                >
-                    <UpdateProfileInformationForm
-                        :must-verify-email="mustVerifyEmail"
-                        :status="status"
-                        class="tw-max-w-xl"
-                    />
-                </div>
-
-                <div
-                    class="tw-bg-white tw-p-4 tw-shadow sm:tw-rounded-lg sm:tw-p-8"
-                >
-                    <UpdatePasswordForm class="tw-max-w-xl" />
-                </div>
-
-                <div
-                    class="tw-bg-white tw-p-4 tw-shadow sm:tw-rounded-lg sm:tw-p-8"
-                >
-                    <DeleteUserForm class="tw-max-w-xl" />
-                </div>
-            </div>
+        <div class="tw-space-y-6">
+            <UpdateProfileInformationForm
+                :must-verify-email="mustVerifyEmail"
+                :status="status"
+            />
+            <UpdatePasswordForm />
+            <DeleteUserForm />
         </div>
     </AuthenticatedLayout>
 </template>
