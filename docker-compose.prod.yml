@@ -54,16 +54,9 @@ services:
             - CACHE_STORE=database
             - QUEUE_CONNECTION=database
 
-            # MinIO din acelasi stack
+            # fisierele stau pe discul serverului (volumul app-storage)
             - FILESYSTEM_DISK=local
-            - AWS_ACCESS_KEY_ID=${SERVICE_USER_MINIO}
-            - AWS_SECRET_ACCESS_KEY=${SERVICE_PASSWORD_MINIO}
-            - AWS_DEFAULT_REGION=us-east-1
-            - AWS_BUCKET=${MINIO_PRIVATE_BUCKET:-renteaza-private}
-            - AWS_PUBLIC_BUCKET=${MINIO_PUBLIC_BUCKET:-renteaza-public}
-            - AWS_ENDPOINT=http://minio:9000
             - AWS_PUBLIC_URL=${AWS_PUBLIC_URL}
-            - AWS_USE_PATH_STYLE_ENDPOINT=true
 
             - MAIL_MAILER=${MAIL_MAILER:-smtp}
             - MAIL_HOST=${MAIL_HOST}
@@ -90,8 +83,6 @@ services:
             - app-storage:/var/www/html/storage/app
         depends_on:
             mariadb:
-                condition: service_healthy
-            minio:
                 condition: service_healthy
         healthcheck:
             test: ["CMD", "curl", "-fsS", "http://127.0.0.1/up"]
@@ -133,14 +124,7 @@ services:
             - QUEUE_CONNECTION=database
 
             - FILESYSTEM_DISK=local
-            - AWS_ACCESS_KEY_ID=${SERVICE_USER_MINIO}
-            - AWS_SECRET_ACCESS_KEY=${SERVICE_PASSWORD_MINIO}
-            - AWS_DEFAULT_REGION=us-east-1
-            - AWS_BUCKET=${MINIO_PRIVATE_BUCKET:-renteaza-private}
-            - AWS_PUBLIC_BUCKET=${MINIO_PUBLIC_BUCKET:-renteaza-public}
-            - AWS_ENDPOINT=http://minio:9000
             - AWS_PUBLIC_URL=${AWS_PUBLIC_URL}
-            - AWS_USE_PATH_STYLE_ENDPOINT=true
 
             - MAIL_MAILER=${MAIL_MAILER:-smtp}
             - MAIL_HOST=${MAIL_HOST}
@@ -199,55 +183,6 @@ services:
             retries: 10
             start_period: 60s
 
-    # ------------------------------------------------------------------ MinIO
-    # Are domeniu propriu: browserul incarca pozele masinilor direct de aici.
-    minio:
-        image: docker.io/minio/minio:latest
-        restart: unless-stopped
-        command: server /data --console-address ":9001"
-        environment:
-            - SERVICE_FQDN_MINIO_9000
-            - MINIO_ROOT_USER=${SERVICE_USER_MINIO}
-            - MINIO_ROOT_PASSWORD=${SERVICE_PASSWORD_MINIO}
-            # URL-ul public al API-ului S3 (pentru linkuri generate corect)
-            - MINIO_SERVER_URL=${SERVICE_URL_MINIO}
-        volumes:
-            - minio-data:/data
-        healthcheck:
-            test: ["CMD", "mc", "ready", "local"]
-            interval: 10s
-            timeout: 5s
-            retries: 10
-            start_period: 30s
-
-    # creeaza bucket-urile la primul deploy si le lasa asa
-    minio-init:
-        image: docker.io/minio/mc:latest
-        restart: "no"
-        exclude_from_hc: true
-        depends_on:
-            minio:
-                condition: service_healthy
-        environment:
-            - MINIO_USER=${SERVICE_USER_MINIO}
-            - MINIO_PASSWORD=${SERVICE_PASSWORD_MINIO}
-            - PRIVATE_BUCKET=${MINIO_PRIVATE_BUCKET:-renteaza-private}
-            - PUBLIC_BUCKET=${MINIO_PUBLIC_BUCKET:-renteaza-public}
-        entrypoint:
-            - sh
-            - -c
-            - |
-                until mc alias set local http://minio:9000 "$$MINIO_USER" "$$MINIO_PASSWORD"; do
-                    echo "astept MinIO..."; sleep 2;
-                done
-                mc mb --ignore-existing "local/$$PRIVATE_BUCKET"
-                mc mb --ignore-existing "local/$$PUBLIC_BUCKET"
-                # bucket-ul privat ramane inchis; doar cel public e citibil anonim
-                mc anonymous set none     "local/$$PRIVATE_BUCKET"
-                mc anonymous set download "local/$$PUBLIC_BUCKET"
-                echo "bucket-uri MinIO gata"
-
 volumes:
     mariadb-data:
-    minio-data:
     app-storage:

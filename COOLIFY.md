@@ -1,7 +1,11 @@
 # Deploy RENTeaza pe Coolify
 
-Stack: `app` (nginx + php-fpm), `queue`, `mysql`, `minio` — totul intr-un singur
-resource Coolify, fara AWS.
+Stack: `app` (nginx + php-fpm), `queue`, `mariadb` — trei containere, un singur
+resource Coolify, fara AWS si fara object storage.
+
+Fisierele (poze masini, logo-uri, documente) stau pe discul serverului, in
+volumul `app-storage`. Disk-urile Laravel se numesc in continuare `aws-public`
+si `aws-private`, dar folosesc driverul `local` — vezi `config/filesystems.php`.
 
 Fisierul de deploy e `docker-compose.prod.yml`. `docker-compose.yml` ramane
 pentru dezvoltare locala (vezi `DOCKER.md`) si **nu** se foloseste in productie:
@@ -35,35 +39,13 @@ de push ca nu urci chei reale.
 | Base Directory          | `/`                         |
 | Docker Compose Location | `/docker-compose.prod.yml`  |
 
-## 2. Stabileste domeniile
+## 2. Stabileste domeniul
 
-Doua servicii au nevoie de domeniu public:
+Un singur domeniu, pentru serviciul `app`. Coolify genereaza automat unul pentru
+`SERVICE_FQDN_APP_80`; il inlocuiesti cu al tau din UI (Configuration → Domains).
+Domeniul **nu se scrie in docker-compose.prod.yml**.
 
-- **app** — domeniul principal, ex. `renteaza.ro`
-- **minio** — subdomeniu pentru fisiere, ex. `storage.renteaza.ro`
-  (browserul incarca pozele masinilor direct de acolo)
-
-Domeniile **nu se scriu in acest fisier**. `SERVICE_FQDN_APP_80` si
-`SERVICE_FQDN_MINIO_9000` sunt doar declarate ca variabile magice; Coolify
-genereaza automat cate un domeniu si il expune ca `SERVICE_URL_APP` /
-`SERVICE_URL_MINIO`, pe care compose-ul le foloseste deja. Valoarea reala o
-editezi din UI, la fiecare serviciu (Configuration → Domains).
-
-**Seteaza-le inainte de primul deploy** — vezi punctul urmator de ce conteaza
-ordinea.
-
-### Cu DuckDNS
-
-Ai nevoie de doua nume. Verifica intai daca subdomeniile merg:
-
-```bash
-dig +short storage.NUMELE-TAU.duckdns.org
-```
-
-Daca intoarce IP-ul VPS-ului, folosesti `NUMELE-TAU.duckdns.org` si
-`storage.NUMELE-TAU.duckdns.org`. Daca nu, inregistrezi un al doilea nume in
-contul DuckDNS (ex. `renteaza` si `renteaza-storage`) — nu trebuie sa fie
-inrudite.
+`mariadb` nu are `ports:` expuse, deci ramane doar pe reteaua interna.
 
 ### Daca rulezi fara certificat (http simplu)
 
@@ -78,15 +60,12 @@ SESSION_SECURE_COOKIE=false
 Altfel browserul refuza sa trimita cookie-ul de sesiune pe http, iar login-ul te
 arunca la nesfarsit inapoi la formular, fara niciun mesaj de eroare.
 
-`mysql` nu are `ports:` expuse, deci ramane doar pe reteaua interna. Consola
-MinIO (9001) la fel: nu e publicata nicaieri.
-
 ## 3. Variabile de mediu
 
 ### Generate automat de Coolify — nu le completa
 
-`SERVICE_PASSWORD_MYSQL`, `SERVICE_PASSWORD_MYSQLROOT`, `SERVICE_USER_MINIO`,
-`SERVICE_PASSWORD_MINIO`. Coolify le creeaza la primul deploy si le pastreaza.
+`SERVICE_PASSWORD_MYSQL` si `SERVICE_PASSWORD_MYSQLROOT` — parolele bazei de
+date. Coolify le creeaza la primul deploy si le pastreaza.
 
 ### Obligatorii — le pui tu
 
@@ -94,7 +73,7 @@ MinIO (9001) la fel: nu e publicata nicaieri.
 | ----------------------- | --------------------------------------------------- |
 | `APP_KEY`               | `base64:...` (vezi mai jos)                          |
 | `APP_NAME`              | `RENTeaza`                                           |
-| `AWS_PUBLIC_URL`        | `https://storage.renteaza.ro/renteaza-public`        |
+| `AWS_PUBLIC_URL`        | `https://renteaza.ro/storage`                        |
 | `GOOGLE_MAPS_API_KEY`   | cheia ta Google Maps                                 |
 | `STRIPE_KEY`            | `pk_live_...`                                        |
 | `STRIPE_SECRET`         | `sk_live_...`                                        |
@@ -126,15 +105,15 @@ Vite nu citeste variabile la runtime: `VITE_AWS_PUBLIC_URL` si
 build-ului. Daca nu sunt disponibile la build, in JS-ul livrat raman goale si
 pozele masinilor apar ca `undefined/vehicles/...`, iar hartile nu se incarca.
 
-De aceea `AWS_PUBLIC_URL` trebuie sa fie corect **inainte** de primul build —
-adica trebuie sa stii deja domeniul MinIO. Daca schimbi ulterior domeniul,
+De aceea `AWS_PUBLIC_URL` trebuie sa fie corect **inainte** de primul build.
+E domeniul aplicatiei plus `/storage`. Daca schimbi ulterior domeniul,
 **redeploy cu rebuild**, nu doar restart.
 
 ## 4. Primul deploy
 
 Apasa Deploy. La pornire, containerul `app`:
 
-1. asteapta MySQL,
+1. asteapta MariaDB,
 2. ruleaza `php artisan migrate --force`,
 3. face `config:cache`, `view:cache`, `event:cache`,
 4. porneste nginx + php-fpm.
@@ -210,19 +189,15 @@ Coolify → Storages.
 
 ## Ce se persista
 
-| Volum         | Continut                                          |
-| ------------- | ------------------------------------------------- |
-| `mysql-data`  | baza de date                                      |
-| `minio-data`  | pozele masinilor, logo-uri, documente             |
-| `app-storage` | `storage/app` — pozele de check-in (disk `public`) |
-
-Pozele de check-in (`SubmitCheckInPhotosAction`) merg pe disk-ul local `public`,
-nu pe S3 — de aceea `storage/app` are volum propriu. Fara el s-ar pierde la
-fiecare redeploy.
+| Volum          | Continut                                                    |
+| -------------- | ----------------------------------------------------------- |
+| `mariadb-data` | baza de date                                                |
+| `app-storage`  | `storage/app` — toate fisierele urcate, publice si private   |
 
 **Backup-uri:** Coolify nu face automat backup la o baza de date definita in
-compose. Configureaza un backup programat pentru volumul `mysql-data`, sau mai
-bine `mysqldump` intr-un cron. La fel pentru `minio-data`.
+compose. Ai nevoie de doua lucruri programate: `mariadb-dump` pentru baza si o
+copie a volumului `app-storage` pentru fisiere. Fara ele, un disc pierdut
+inseamna rezervari, contracte si documente pierdute.
 
 ## Logurile
 
@@ -231,13 +206,14 @@ containerului — nu trebuie sa intri in container dupa `storage/logs/laravel.lo
 
 ## Ce s-a verificat
 
-Imaginea de productie a fost construita si rulata local cu podman, cu MySQL si
-MinIO alaturi:
+Imaginea de productie a fost construita si rulata local cu podman, cu MariaDB
+alaturi:
 
 - `/up` raspunde `OK` (health-check-ul folosit de compose si de Coolify)
 - pagina principala raspunde 200, cu asset-uri compilate de Vite (fara dev server)
 - `VITE_AWS_PUBLIC_URL` chiar ajunge in `public/build/assets/app-*.js`
-- upload pe MinIO din containerul de productie functioneaza
+- upload pe disk-urile `aws-public` si `aws-private`, cu fisierul public
+  servit corect prin `/storage/...` si cel privat inaccesibil din web
 - cu header-ele `X-Forwarded-*` trimise de Traefik, Laravel genereaza corect
   `https://domeniu/build/...` (asta e rolul lui `trustProxies`, adaugat in
   `bootstrap/app.php`)

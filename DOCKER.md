@@ -1,7 +1,8 @@
 # RENTeaza — rulare in Docker
 
-Stack complet: Laravel 12 + Inertia/Vue 3 + Vite, MySQL 8, MinIO (inlocuieste S3),
-Mailpit (inlocuieste SMTP-ul real) si un worker de cozi.
+Stack complet: Laravel 12 + Inertia/Vue 3 + Vite, MariaDB, Mailpit (inlocuieste
+SMTP-ul real) si un worker de cozi. Fisierele urcate stau pe disc, in
+`storage/app`, servite prin symlink-ul `public/storage`.
 
 ## Pornire
 
@@ -18,8 +19,7 @@ Prima pornire dureaza cateva minute: se construieste imaginea PHP, ruleaza
 | Aplicatia           | http://localhost:8000                          |
 | Vite (HMR)          | http://localhost:5173                          |
 | Mailpit (email-uri) | http://localhost:8025                          |
-| MinIO console       | http://localhost:9001 (minioadmin / minioadmin) |
-| MySQL               | localhost:3306 (renteaza / secret)             |
+| MariaDB             | localhost:3306 (renteaza / secret)             |
 
 Oprire: `docker compose down`. Stergere completa cu tot cu date:
 `docker compose down -v`.
@@ -49,10 +49,8 @@ docker compose exec app php artisan db:seed --force
 - **queue** — `php artisan queue:work` (proiectul are `QUEUE_CONNECTION=database`
   si job-ul `TransferOwnerPayout`).
 - **vite** — dev server cu HMR. Codul din `resources/` se reincarca automat.
-- **mysql** — baza `renteaza`, date persistate in volumul `mysql-data`.
-- **minio** + **minio-init** — S3 local. Se creeaza bucket-urile
-  `renteaza-private` (documente, KYC) si `renteaza-public` (poze masini, logo-uri),
-  al doilea cu citire anonima ca sa se incarce imaginile in browser.
+- **mariadb** — baza `renteaza`, date persistate in volumul `mariadb-data`.
+  Nu MySQL: imaginea `mysql:8` nu porneste pe CPU-uri fara SSE4.2.
 - **mailpit** — prinde toate email-urile, nu pleaca nimic in exterior.
 
 ## Comenzi uzuale
