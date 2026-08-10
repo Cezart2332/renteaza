@@ -73,7 +73,7 @@ class ClientReviewController extends Controller
         $vehicleIdsFromBookings = Booking::query()
             ->where('client_id', $client->id)
             ->whereIn('status', [
-                ReservationStatus::Accepted->value,
+                ReservationStatus::OwnerAccepted->value,
             ])
             ->pluck('vehicle_id')
             ->unique();

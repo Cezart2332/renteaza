@@ -528,14 +528,14 @@
                                 <div
                                     class="tw-overflow-hidden tw-rounded-2xl tw-ring-1 ring-black/5 tw-mb-5"
                                 >
-                                    <iframe
-                                        v-if="mapEmbedSrc"
-                                        :key="mapEmbedSrc"
+                                    <MapboxMap
+                                        v-if="mapCenter"
+                                        :center="mapCenter"
+                                        :zoom="14"
+                                        :interactive="false"
+                                        :markers="[{ id: 'company', position: mapCenter }]"
                                         class="tw-w-full tw-h-[220px]"
-                                        :src="mapEmbedSrc"
-                                        style="border: 0"
-                                        loading="lazy"
-                                    ></iframe>
+                                    />
                                     <div
                                         v-else
                                         class="tw-h-[220px] tw-flex tw-items-center tw-justify-center tw-bg-slate-50 tw-text-slate-500"
@@ -732,6 +732,7 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
 import { useForm } from "@inertiajs/vue3";
 import CompanyOwnerDashboardLayout from "@/Layouts/CompanyOwnerDashboardLayout.vue";
+import MapboxMap from "@/Components/Map/MapboxMap.vue";
 import { watch } from "vue";
 
 const props = defineProps({
@@ -875,17 +876,13 @@ const initialsPreview = computed(() => {
 /** Map & website */
 const normalizedWebsite = computed(() => normalizeUrl(form.website));
 
-const mapEmbedSrc = computed(() => {
-    const addr = (form.address || "").trim();
-    if (addr) {
-        return `https://www.google.com/maps?q=${encodeURIComponent(
-            addr
-        )}&z=14&output=embed`;
-    }
-    if (form.latitude && form.longitude) {
-        return `https://www.google.com/maps?q=${form.latitude},${form.longitude}&z=14&output=embed`;
-    }
-    return "";
+// Mapbox are nevoie de coordonate, nu de un URL de embed.
+// Latitudinea/longitudinea sunt completate de geocodare la scrierea adresei.
+const mapCenter = computed(() => {
+    const lat = parseFloat(form.latitude);
+    const lng = parseFloat(form.longitude);
+    if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng };
+    return null;
 });
 
 function normalizeUrl(url) {
@@ -905,16 +902,22 @@ async function geocodeAddress(addr) {
   if (addrAbort) addrAbort.abort();
   addrAbort = new AbortController();
 
-  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(addr)}&key=${apiKey}`;
+  const token = import.meta.env.VITE_MAPBOX_TOKEN;
+  if (!token) return null;
+
+  const url =
+    `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(addr)}.json` +
+    `?access_token=${token}&limit=1&language=ro`;
 
   const res = await fetch(url, { signal: addrAbort.signal });
   if (!res.ok) throw new Error(`Geocoding failed: ${res.status}`);
   const data = await res.json();
 
-  if (data.status !== "OK" || !data.results.length) return null;
+  const feature = data.features?.[0];
+  if (!feature?.center) return null;
 
-  const { lat, lng } = data.results[0].geometry.location;
+  // Mapbox intoarce [lng, lat], invers fata de Google
+  const [lng, lat] = feature.center;
   return { lat, lng };
 }
 

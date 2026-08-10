@@ -1,5 +1,6 @@
 <script setup>
 import CtaCheapRentalSection from "@/Components/CtaCheapRentalSection.vue";
+import MapboxMap from "@/Components/Map/MapboxMap.vue";
 import AppLayout from "@/Layouts/AppLayout.vue";
 import { reactive, ref, watch } from "vue";
 import { router } from "@inertiajs/vue3";
@@ -443,21 +444,13 @@ watch(
             <div
                 class="tw-w-6/12 tw-sticky tw-top-24 tw-self-start tw-h-[calc(100vh-6rem)]"
             >
-                <GMapMap
-                    :center="center"
+                <MapboxMap
+                    :center="center ?? { lat: 44.4268, lng: 26.1025 }"
                     :zoom="12"
-                    map-type-id="terrain"
+                    :markers="markers"
                     class="tw-w-full tw-h-full"
-                >
-                    <GMapMarker
-                        v-for="(m, index) in markers"
-                        :key="m.id ?? index"
-                        :position="m.position"
-                        :clickable="true"
-                        :draggable="true"
-                        @click="center = m.position"
-                    />
-                </GMapMap>
+                    @marker-click="(m) => (center = m.position)"
+                />
             </div>
         </div>
 

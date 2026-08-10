@@ -20,7 +20,7 @@ services:
                 # se "coc" in bundle-ul JS la build; vezi COOLIFY.md
                 - VITE_APP_NAME=${APP_NAME:-RENTeaza}
                 - VITE_AWS_PUBLIC_URL=${AWS_PUBLIC_URL}
-                - VITE_GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
+                - VITE_MAPBOX_TOKEN=${MAPBOX_TOKEN}
         restart: unless-stopped
         environment:
             # Coolify genereaza domeniul si il ruteaza spre portul 80

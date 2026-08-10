@@ -1,209 +1,198 @@
 <script setup>
-import { onMounted, reactive, ref, watch } from 'vue'
-import { router } from '@inertiajs/vue3'
-
 /**
- * AddressSelection.vue
- * — Vue 3 SFC that replicates the Google Console demo using Places Autocomplete
- * — Tailwind classes use the `tw-` prefix (configure Tailwind accordingly)
- * — Emits full address data on selection; also exposes a simple submit example
+ * Cautare de adrese prin Mapbox Geocoding, inlocuind Google Places Autocomplete.
+ *
+ * Contractul de emit e neschimbat, ca sa nu fie nevoie de modificari in
+ * Owner/Cars/Create.vue: 'selected' primeste acelasi obiect cu
+ * location / locality / administrative_area_level_1 / postal_code / country /
+ * place_id / lat / lng, plus 'description' (textul complet al adresei).
  */
+import { onBeforeUnmount, reactive, ref, watch } from "vue";
 
-// PROPS
 const props = defineProps({
-    apiKey: { type: String, default: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '' },
-    restrictCountry: { type: [String, Array], default: undefined }, // 'ro' or ['ro','bg']
-    submitTo: { type: String, default: '' }, // optional Inertia route name
-    method: { type: String, default: 'post' }, // 'get' | 'post' | 'put' | 'patch'
-})
+    token: { type: String, default: import.meta.env.VITE_MAPBOX_TOKEN || "" },
+    // 'ro' sau ['ro','bg'] — acelasi format ca inainte
+    restrictCountry: { type: [String, Array], default: undefined },
+    label: { type: String, default: "Caută și selectează adresa" },
+});
 
-// EMITS
-const emit = defineEmits(['selected'])
+const emit = defineEmits(["selected"]);
 
-// STATE
+const query = ref("");
+const results = ref([]);
+const open = ref(false);
+const loading = ref(false);
+const errorMsg = ref("");
+const activeIndex = ref(-1);
+
 const form = reactive({
-    location: '', // Address line: street_number + route
-    apt: '',
-    locality: '',
-    administrative_area_level_1: '',
-    postal_code: '',
-    country: '',
-    // Helpful extras
-    place_id: '',
+    location: "",
+    apt: "",
+    locality: "",
+    administrative_area_level_1: "",
+    postal_code: "",
+    country: "",
+    place_id: "",
+    description: "",
     lat: null,
     lng: null,
-})
+});
 
-// DOM refs
-const locationInputRef = ref(null)
+let debounceTimer = null;
+let controller = null;
 
-// --- Loader for Google Maps JS API (places) ---
-let gmapsPromise = null
-function loadGoogleMaps(apiKey) {
-    if (typeof window !== 'undefined' && window.google?.maps?.places) {
-        return Promise.resolve()
-    }
-    if (gmapsPromise) return gmapsPromise
-    gmapsPromise = new Promise((resolve, reject) => {
-        const script = document.createElement('script')
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
-        script.async = true
-        script.defer = true
-        script.onload = () => resolve()
-        script.onerror = (e) => reject(e)
-        document.head.appendChild(script)
-    })
-    return gmapsPromise
+function countryParam() {
+    if (!props.restrictCountry) return "";
+    const list = Array.isArray(props.restrictCountry)
+        ? props.restrictCountry
+        : [props.restrictCountry];
+    return `&country=${list.join(",")}`;
 }
 
-// Helpers for filling the form from a Place result
-const SHORT_NAME = new Set(['street_number', 'administrative_area_level_1', 'postal_code'])
-function getComponent(place, type) {
-    const comp = (place.address_components || []).find(c => c.types?.[0] === type)
-    if (!comp) return ''
-    return SHORT_NAME.has(type) ? (comp.short_name || '') : (comp.long_name || '')
-}
-
-function fillInAddress(place) {
-    // Build "location" (street address)
-    const streetNumber = getComponent(place, 'street_number')
-    const route = getComponent(place, 'route')
-    form.location = [streetNumber, route].filter(Boolean).join(' ')
-
-    form.locality = getComponent(place, 'locality')
-    form.administrative_area_level_1 = getComponent(place, 'administrative_area_level_1')
-    form.postal_code = getComponent(place, 'postal_code')
-    form.country = getComponent(place, 'country')
-
-    form.place_id = place.place_id || ''
-    const loc = place.geometry?.location
-    if (loc) {
-        form.lat = typeof loc.lat === 'function' ? loc.lat() : loc.lat
-        form.lng = typeof loc.lng === 'function' ? loc.lng() : loc.lng
+async function search(text) {
+    if (!props.token) {
+        errorMsg.value = "Lipsește VITE_MAPBOX_TOKEN.";
+        return;
     }
-}
-
-// Init Places Autocomplete on the Address input
-let autocomplete = null
-
-onMounted(async () => {
-    if (!props.apiKey) {
-        console.warn('[AddressSelection] No Google Maps API key provided')
-        return
-    }
-    await loadGoogleMaps(props.apiKey)
-
-    const inputEl = locationInputRef.value
-    if (!inputEl) return
-
-    const options = {
-        fields: ['address_components', 'geometry', 'name', 'place_id'],
-        types: ['address'],
-    }
-    // Restrict by country if provided
-    if (props.restrictCountry) {
-        options.componentRestrictions = { country: props.restrictCountry }
+    if (text.trim().length < 3) {
+        results.value = [];
+        open.value = false;
+        return;
     }
 
-    autocomplete = new google.maps.places.Autocomplete(inputEl, options)
+    controller?.abort();
+    controller = new AbortController();
+    loading.value = true;
+    errorMsg.value = "";
 
-    autocomplete.addListener('place_changed', () => {
-        const place = autocomplete.getPlace()
-        if (!place || !place.geometry) {
-            alert(`No details available for: '${place?.name || form.location}'`)
-            return
+    try {
+        const url =
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(text)}.json` +
+            `?access_token=${props.token}` +
+            `&types=address,poi,place&limit=6&language=ro${countryParam()}`;
+
+        const res = await fetch(url, { signal: controller.signal });
+        if (!res.ok) throw new Error(`Mapbox ${res.status}`);
+
+        const data = await res.json();
+        results.value = data.features ?? [];
+        open.value = results.value.length > 0;
+        activeIndex.value = -1;
+    } catch (e) {
+        if (e.name !== "AbortError") {
+            errorMsg.value = "Căutarea adresei a eșuat.";
+            results.value = [];
+            open.value = false;
         }
-        fillInAddress(place)
-        emit('selected', { ...form })
-    })
-})
-
-// Simple Inertia submit example (optional)
-function submit() {
-    if (!props.submitTo) return
-    const data = { ...form }
-    const m = props.method.toLowerCase()
-    if (m === 'get') {
-        router.get(route(props.submitTo), data, { preserveState: true })
-    } else if (m === 'post') {
-        router.post(route(props.submitTo), data)
-    } else if (m === 'put') {
-        router.put(route(props.submitTo), data)
-    } else if (m === 'patch') {
-        router.patch(route(props.submitTo), data)
-    } else {
-        router.post(route(props.submitTo), data)
+    } finally {
+        loading.value = false;
     }
 }
+
+watch(query, (val) => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => search(val), 300);
+});
+
+/** Mapbox intoarce ierarhia in feature.context, cu id-uri prefixate. */
+function contextValue(feature, prefix) {
+    const hit = (feature.context ?? []).find((c) =>
+        String(c.id).startsWith(`${prefix}.`)
+    );
+    return hit?.text ?? "";
+}
+
+function choose(feature) {
+    const [lng, lat] = feature.center ?? [null, null];
+
+    // adresa pe o linie: strada + numar (Mapbox pune numarul in address)
+    const street = feature.text ?? "";
+    const number = feature.address ?? "";
+    form.location = number ? `${street} ${number}` : street;
+
+    form.locality =
+        contextValue(feature, "place") || contextValue(feature, "locality");
+    form.administrative_area_level_1 = contextValue(feature, "region");
+    form.postal_code = contextValue(feature, "postcode");
+    form.country = contextValue(feature, "country");
+    form.place_id = feature.id ?? "";
+    form.description = feature.place_name ?? "";
+    form.lat = lat;
+    form.lng = lng;
+
+    query.value = feature.place_name ?? "";
+    open.value = false;
+    results.value = [];
+
+    emit("selected", { ...form });
+}
+
+function onKeydown(e) {
+    if (!open.value || !results.value.length) return;
+    if (e.key === "ArrowDown") {
+        e.preventDefault();
+        activeIndex.value = (activeIndex.value + 1) % results.value.length;
+    } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        activeIndex.value =
+            (activeIndex.value - 1 + results.value.length) % results.value.length;
+    } else if (e.key === "Enter" && activeIndex.value >= 0) {
+        e.preventDefault();
+        choose(results.value[activeIndex.value]);
+    } else if (e.key === "Escape") {
+        open.value = false;
+    }
+}
+
+onBeforeUnmount(() => {
+    clearTimeout(debounceTimer);
+    controller?.abort();
+});
 </script>
 
 <template>
-    <div class="tw-w-full tw-flex tw-justify-center tw-items-start">
-        <div
-            class="tw-w-[300px] tw-h-[500px] tw-bg-white tw-rounded-2xl tw-shadow-sm tw-border tw-border-gray-200 tw-p-5 tw-flex tw-flex-col tw-justify-between">
-            <!-- Title -->
-            <div>
-                <div class="tw-flex tw-items-center tw-gap-2 tw-mb-1">
-                    <!-- simple icon -->
-                    <svg class="tw-w-5 tw-h-5 tw-text-gray-700" viewBox="0 0 24 24" fill="currentColor"
-                        aria-hidden="true">
-                        <path
-                            d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z" />
-                    </svg>
-                    <span class="tw-font-medium tw-text-gray-800">Address Selection</span>
-                </div>
-            </div>
+    <div class="tw-relative tw-w-full">
+        <label class="tw-sr-only">{{ label }}</label>
 
-            <!-- Inputs -->
-            <div class="tw-space-y-4">
-                <!-- Address line (autocomplete target) -->
-                <input ref="locationInputRef" v-model="form.location" type="text" placeholder="Address"
-                    class="tw-w-full tw-bg-transparent tw-border-0 tw-border-b tw-border-gray-800 tw-text-sm tw-pb-1 focus:tw-outline-none focus:tw-ring-0 focus:tw-border-black" />
+        <input
+            v-model="query"
+            type="text"
+            autocomplete="off"
+            placeholder="Ex: Calea Victoriei 12, București"
+            class="tw-block tw-w-full tw-rounded-md tw-border-gray-300 tw-text-black focus:tw-border-[var(--theme2)] focus:tw-ring-[var(--theme2)]"
+            @keydown="onKeydown"
+            @focus="open = results.length > 0"
+        />
 
-                <!-- Apt/Suite -->
-                <input v-model="form.apt" type="text" placeholder="Apt, Suite, etc (optional)"
-                    class="tw-w-full tw-bg-transparent tw-border-0 tw-border-b tw-border-gray-800 tw-text-sm tw-pb-1 focus:tw-outline-none focus:tw-ring-0 focus:tw-border-black" />
+        <span
+            v-if="loading"
+            class="tw-absolute tw-right-3 tw-top-2.5 tw-text-xs tw-text-gray-400"
+        >
+            caut…
+        </span>
 
-                <!-- City -->
-                <input v-model="form.locality" type="text" placeholder="City"
-                    class="tw-w-full tw-bg-transparent tw-border-0 tw-border-b tw-border-gray-800 tw-text-sm tw-pb-1 focus:tw-outline-none focus:tw-ring-0 focus:tw-border-black" />
-
-                <!-- State + Postal code -->
-                <div class="tw-flex tw-gap-4">
-                    <input v-model="form.administrative_area_level_1" type="text" placeholder="State/Province"
-                        class="tw-w-1/2 tw-bg-transparent tw-border-0 tw-border-b tw-border-gray-800 tw-text-sm tw-pb-1 focus:tw-outline-none focus:tw-ring-0 focus:tw-border-black" />
-
-                    <input v-model="form.postal_code" type="text" placeholder="Zip/Postal code"
-                        class="tw-w-1/2 tw-bg-transparent tw-border-0 tw-border-b tw-border-gray-800 tw-text-sm tw-pb-1 focus:tw-outline-none focus:tw-ring-0 focus:tw-border-black" />
-                </div>
-
-                <!-- Country -->
-                <input v-model="form.country" type="text" placeholder="Country"
-                    class="tw-w-full tw-bg-transparent tw-border-0 tw-border-b tw-border-gray-800 tw-text-sm tw-pb-1 focus:tw-outline-none focus:tw-ring-0 focus:tw-border-black" />
-            </div>
-
-            <!-- CTA row -->
-            <div class="tw-pt-2">
-                <button type="button"
-                    class="tw-inline-flex tw-items-center tw-justify-center tw-w-full tw-rounded-xl tw-bg-[#0D5DB8] tw-text-white tw-text-sm tw-font-semibold tw-px-4 tw-py-2.5 hover:tw-bg-[#0b53a4] focus:tw-ring-2 focus:tw-ring-offset-2 focus:tw-ring-[#0D5DB8]"
-                    @click="submit">
-                    Checkout
+        <ul
+            v-if="open"
+            class="tw-absolute tw-z-20 tw-mt-1 tw-max-h-64 tw-w-full tw-overflow-auto tw-rounded-lg tw-border tw-border-gray-200 tw-bg-white tw-py-1 tw-shadow-lg"
+        >
+            <li v-for="(f, idx) in results" :key="f.id">
+                <button
+                    type="button"
+                    :class="[
+                        'tw-block tw-w-full tw-px-3 tw-py-2 tw-text-left tw-text-sm',
+                        idx === activeIndex
+                            ? 'tw-bg-gray-100 tw-text-gray-900'
+                            : 'tw-text-gray-700 hover:tw-bg-gray-50',
+                    ]"
+                    @click="choose(f)"
+                >
+                    {{ f.place_name }}
                 </button>
+            </li>
+        </ul>
 
-                <!-- tiny debug / extras -->
-                <div class="tw-mt-3 tw-text-[11px] tw-text-gray-500">
-                    <div>place_id: <span class="tw-text-gray-700">{{ form.place_id || '—' }}</span></div>
-                    <div>coords: <span class="tw-text-gray-700">{{ form.lat ?? '—' }}, {{ form.lng ?? '—' }}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <p v-if="errorMsg" class="tw-mt-1 tw-text-xs tw-text-[var(--theme)]">
+            {{ errorMsg }}
+        </p>
     </div>
 </template>
-
-<style scoped>
-/***** Optional: mimic the original focus placeholder fade *****/
-input:focus::placeholder {
-    color: transparent;
-}
-</style>

@@ -11,9 +11,12 @@ class TransmissionsTableSeeder extends Seeder
     /**
      * Run the database seeds.
      */
+    // insertOrIgnore, nu insert: seederele ruleaza la fiecare deploy.
+    // (upsert cu array de update gol e tratat de Laravel exact ca insert,
+    //  deci ar fi crapat pe cheia unica 'name'.)
     public function run(): void
     {
-         DB::table('transmissions')->insert([
+         DB::table('transmissions')->insertOrIgnore([
             ['name' => 'automatic'],
             ['name' => 'manual'],
             ['name' => 'none'],

@@ -77,7 +77,7 @@ class CarController extends Controller
         $bookedRanges = Booking::query()
             ->where('vehicle_id', $vehicle->id)
             ->whereIn('status', [
-                ReservationStatus::Accepted->value,
+                ReservationStatus::OwnerAccepted->value,
                 ReservationStatus::Pending->value,
             ])
             ->get(['start_date', 'end_date'])

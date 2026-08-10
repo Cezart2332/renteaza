@@ -86,9 +86,13 @@
         <div class="map-section">
             <div class="map-items">
                 <div class="googpemap">
-                    <iframe
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2849.1905245273288!2d26.15648897658673!3d44.429253901893254!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x40b1ff0005a2199d%3A0x1394990f94dd3090!2sRENTeaza%20Studio!5e0!3m2!1sro!2sro!4v1754419514289!5m2!1sro!2sro"
-                        style="border: 0" allowfullscreen loading="lazy"></iframe>
+                    <!-- coordonatele biroului, extrase din vechiul embed Google -->
+                    <MapboxMap
+                        :center="{ lat: 44.4292539, lng: 26.1564889 }"
+                        :zoom="15"
+                        :markers="[{ id: 'studio', position: { lat: 44.4292539, lng: 26.1564889 }, label: 'RENTeaza Studio' }]"
+                        class="tw-w-full tw-h-[420px]"
+                    />
                 </div>
             </div>
         </div>
@@ -103,6 +107,7 @@
 import CtaCheapRentalSection from '@/Components/CtaCheapRentalSection.vue'
 import Notification from '@/Components/Notification.vue'
 import AppLayout from '@/Layouts/AppLayout.vue'
+import MapboxMap from '@/Components/Map/MapboxMap.vue'
 import { useForm } from '@inertiajs/vue3'
 
 const form = useForm({

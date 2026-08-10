@@ -77,10 +77,10 @@ COPY --from=vendor /var/www/html/vendor/tightenco/ziggy ./vendor/tightenco/ziggy
 # In Coolify trebuie bifate ca Build Variable, altfel raman goale in JS-ul livrat.
 ARG VITE_APP_NAME=RENTeaza
 ARG VITE_AWS_PUBLIC_URL
-ARG VITE_GOOGLE_MAPS_API_KEY
+ARG VITE_MAPBOX_TOKEN
 ENV VITE_APP_NAME=${VITE_APP_NAME} \
     VITE_AWS_PUBLIC_URL=${VITE_AWS_PUBLIC_URL} \
-    VITE_GOOGLE_MAPS_API_KEY=${VITE_GOOGLE_MAPS_API_KEY}
+    VITE_MAPBOX_TOKEN=${VITE_MAPBOX_TOKEN}
 
 RUN npm run build
 

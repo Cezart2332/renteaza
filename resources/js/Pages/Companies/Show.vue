@@ -263,15 +263,14 @@
                             <div
                                 class="tw-overflow-hidden tw-rounded-2xl tw-ring-1 ring-black/5"
                             >
-                                <iframe
-                                    v-if="hasMap"
+                                <MapboxMap
+                                    v-if="mapCenter"
+                                    :center="mapCenter"
+                                    :zoom="14"
+                                    :interactive="false"
+                                    :markers="[{ id: 'company', position: mapCenter, label: company?.name }]"
                                     class="tw-w-full tw-h-[360px]"
-                                    :src="mapEmbedSrc"
-                                    style="border: 0"
-                                    allowfullscreen
-                                    loading="lazy"
-                                    referrerpolicy="no-referrer-when-downgrade"
-                                ></iframe>
+                                />
                                 <div
                                     v-else
                                     class="tw-flex tw-h-[360px] tw-items-center tw-justify-center tw-bg-slate-50 tw-text-slate-500"
@@ -466,6 +465,7 @@
 
 <script setup>
 import AppLayout from "@/Layouts/AppLayout.vue";
+import MapboxMap from "@/Components/Map/MapboxMap.vue";
 import { computed, ref, watch, onMounted, onBeforeUnmount } from "vue";
 
 const props = defineProps({
@@ -569,15 +569,14 @@ const hasCoords = computed(
 );
 const hasMap = computed(() => hasCoords.value || !!props.company?.address);
 
-const mapEmbedSrc = computed(() => {
-    if (hasCoords.value) {
-        return `https://www.google.com/maps?q=${props.company.latitude},${props.company.longitude}&z=14&output=embed`;
-    }
-    if (props.company?.address) {
-        const q = encodeURIComponent(props.company.address);
-        return `https://www.google.com/maps?q=${q}&z=14&output=embed`;
-    }
-    return "";
+// Mapbox lucreaza cu coordonate, nu cu un URL de embed.
+// Daca firma are doar adresa, fara coordonate, harta nu se afiseaza —
+// coordonatele se completeaza prin geocodare cand se salveaza profilul.
+const mapCenter = computed(() => {
+    const lat = parseFloat(props.company?.latitude);
+    const lng = parseFloat(props.company?.longitude);
+    if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng };
+    return null;
 });
 
 const mapExternalLink = computed(() => {

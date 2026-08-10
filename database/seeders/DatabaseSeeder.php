@@ -61,6 +61,12 @@ class DatabaseSeeder extends Seeder
             // AddStudioLocationSeeder::class,
             //FaqSeeder::class,
             RoleSeeder::class,
+            // date de referinta fara de care formularul de adaugare masina
+            // are toate listele goale
+            FuelTypesTableSeeder::class,
+            TransmissionsTableSeeder::class,
+            VehicleTypesTableSeeder::class,
+            RentalTypesTableSeeder::class,
             AdminUserSeeder::class,
             CompanyOwnerUserSeeder::class,
         ]);

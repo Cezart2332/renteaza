@@ -21,7 +21,7 @@ class OwnerCalendarBookingsController extends Controller
         $bookedRanges = Booking::query()
             ->where('vehicle_id', $vehicle->id)
             ->whereIn('status', [
-                ReservationStatus::Accepted->value,
+                ReservationStatus::OwnerAccepted->value,
             ])
             ->get(['start_date', 'end_date'])
             ->map(fn($b) => [
@@ -50,7 +50,7 @@ class OwnerCalendarBookingsController extends Controller
         $rawReservations = Booking::query()
             ->where('vehicle_id', $vehicle->id)
             ->whereIn('status', [
-                ReservationStatus::Accepted->value,
+                ReservationStatus::OwnerAccepted->value,
             ])
             ->with('client:id,name')
             ->orderBy('start_date')

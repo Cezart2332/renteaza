@@ -7,7 +7,6 @@ import { createInertiaApp, Link } from "@inertiajs/vue3";
 import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
 import { createApp, h } from "vue";
 import { ZiggyVue } from "../../vendor/tightenco/ziggy";
-import VueGoogleMaps from '@fawmi/vue-google-maps'
 
 const appName = import.meta.env.VITE_APP_NAME || "Laravel";
 
@@ -22,11 +21,6 @@ createInertiaApp({
         return createApp({ render: () => h(App, props) })
             .component("inertia-link", Link)
             .use(plugin)
-            .use(VueGoogleMaps, {
-                load: {
-                    key: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
-                }
-            })
             .mixin({
                 methods: {
                     authUserHasRole(verifiableRole) {

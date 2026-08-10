@@ -11,9 +11,12 @@ class FuelTypesTableSeeder extends Seeder
     /**
      * Run the database seeds.
      */
+    // insertOrIgnore, nu insert: seederele ruleaza la fiecare deploy.
+    // (upsert cu array de update gol e tratat de Laravel exact ca insert,
+    //  deci ar fi crapat pe cheia unica 'name'.)
     public function run(): void
     {
-        DB::table('fuel_types')->insert([
+        DB::table('fuel_types')->insertOrIgnore([
             ['name' => 'electric'],
             ['name' => 'hybrid'],
             ['name' => 'gasoline'],
